@@ -16,5 +16,6 @@ lipo -create target/aarch64-apple-darwin/release/keyclash target/x86_64-apple-da
 ./dist/build/keyclash --bundle dist
 rm -rf dist/build
 codesign --verify --deep --strict dist/Keyclash.app
-(cd dist && ditto -c -k --keepParent Keyclash.app "Keyclash-$version.zip")
-echo "Made dist/Keyclash-$version.zip ($(lipo -archs dist/Keyclash.app/Contents/MacOS/keyclash))"
+(cd dist && ditto -c -k --keepParent Keyclash.app "Keyclash-$version.zip" && cp "Keyclash-$version.zip" Keyclash.zip)
+echo "Made dist/Keyclash-$version.zip and dist/Keyclash.zip; upload both to the release (the site links to Keyclash.zip)"
+echo "Built ($(lipo -archs dist/Keyclash.app/Contents/MacOS/keyclash))"
