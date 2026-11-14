@@ -1,0 +1,34 @@
+[package]
+name = "keyclash"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/hitpoint-hi/keyclash"
+
+[dependencies]
+eframe = "0.37.0"
+image = { version = "0.25.10", default-features = false, features = ["png"] }
+memchr = "2.8.3"
+plist = "1.10.3"
+regex = "1.13.1"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+toml = "1.2.1"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6.5"
+objc2-app-kit = { version = "0.3.2", default-features = false, features = ["NSScreen"] }
+
+[patch.crates-io]
+eframe = { path = "vendor/eframe" }
+
+# The check runs the debug build: optimise it so the scan and the first frames are fast.
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2
+
+# The build that people download: small, with no debug data.
+[profile.release]
+strip = true

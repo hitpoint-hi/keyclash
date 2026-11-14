@@ -1,0 +1,21 @@
+/target
+/dist
+.DS_Store
+/.agents/skills/impeccable
+/.impeccable/config.local.json
+/.impeccable/hook.cache.json
+/.impeccable/questions/
+/.impeccable/mocks/
+/.impeccable/review/
+
+# local captures and internal build records, kept out of the public repo
+/shots/
+/AGENT-IDEA.md
+/APP-REVIEW.md
+/BEFORE-SHARING.md
+/MECHANICS.md
+/mechanics.json
+/PANEL-REVIEW.md
+/REVIEW.md
+/SETTINGS-REVIEW.md
+/TABS-REVIEW.md

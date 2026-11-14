@@ -1,0 +1,461 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T20:07:38.715252+00:00",
+  "title": "Design System: Keyclash",
+  "extensions": {
+    "native": {
+      "platform": "macos",
+      "renderer": "Rust/egui",
+      "source": "src/theme.rs",
+      "previewLimit": "HTML/CSS previews approximate the native primitives. Validate the native app separately.",
+      "sources": [
+        "src/theme.rs",
+        "src/ui.rs",
+        "src/welcome.rs"
+      ],
+      "settingsWindow": {
+        "initialSize": [
+          680,
+          760
+        ],
+        "minimumSize": [
+          560,
+          420
+        ],
+        "unit": "egui logical points",
+        "modal": false,
+        "content": "Full-width cards in a vertical scroll area."
+      }
+    },
+    "colorMeta": {
+      "dark-background": {
+        "role": "neutral",
+        "displayName": "Dark Background",
+        "canonical": "#0E1014",
+        "tonalRamp": [
+          "#090B0F",
+          "#222428",
+          "#3D4045",
+          "#5E6066",
+          "#808389",
+          "#A5A8AD",
+          "#C8CAD0",
+          "#EDEEF0"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "canonical": "#15171C",
+        "tonalRamp": [
+          "#0A0B0F",
+          "#222429",
+          "#3D4045",
+          "#5E6067",
+          "#80838A",
+          "#A5A8AE",
+          "#C8CAD0",
+          "#EEEEF0"
+        ]
+      },
+      "dark-card": {
+        "role": "neutral",
+        "displayName": "Dark Card",
+        "canonical": "#181B21",
+        "tonalRamp": [
+          "#090B0F",
+          "#21242A",
+          "#3C4047",
+          "#5D6068",
+          "#7F838B",
+          "#A4A8B0",
+          "#C7CBD1",
+          "#EDEEF0"
+        ]
+      },
+      "dark-raised": {
+        "role": "neutral",
+        "displayName": "Dark Raised",
+        "canonical": "#22262E",
+        "tonalRamp": [
+          "#090B0F",
+          "#20242C",
+          "#3B4048",
+          "#5C616A",
+          "#7E838D",
+          "#A3A8B2",
+          "#C7CBD1",
+          "#EDEEF1"
+        ]
+      },
+      "dark-text": {
+        "role": "neutral",
+        "displayName": "Dark Text",
+        "canonical": "#EEF0F4",
+        "tonalRamp": [
+          "#0A0B0E",
+          "#232427",
+          "#3E4043",
+          "#5F6064",
+          "#818387",
+          "#A6A8AB",
+          "#C9CACE",
+          "#ECEEF2"
+        ]
+      },
+      "dark-secondary": {
+        "role": "neutral",
+        "displayName": "Dark Secondary",
+        "canonical": "#C3C8D2",
+        "tonalRamp": [
+          "#080B11",
+          "#20242B",
+          "#3C4048",
+          "#5C6069",
+          "#7F838C",
+          "#A3A8B1",
+          "#C6CBD4",
+          "#EDEEF2"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Dark Muted",
+        "canonical": "#8E95A3",
+        "tonalRamp": [
+          "#090B10",
+          "#1F242D",
+          "#3A404C",
+          "#5A616D",
+          "#7C8391",
+          "#A2A8B4",
+          "#C6CBD3",
+          "#EDEEF1"
+        ]
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Dark Accent",
+        "canonical": "#5AA7FF",
+        "tonalRamp": [
+          "#00062E",
+          "#001C65",
+          "#003C8B",
+          "#0560B2",
+          "#3785DA",
+          "#61ABFF",
+          "#9FCEFF",
+          "#E1F0FF"
+        ]
+      },
+      "dark-clash": {
+        "role": "secondary",
+        "displayName": "Dark Clash",
+        "canonical": "#FF5C61",
+        "tonalRamp": [
+          "#2B0000",
+          "#5F0000",
+          "#8C0000",
+          "#B60026",
+          "#E13F49",
+          "#FF7172",
+          "#FFACA8",
+          "#FFE5E3"
+        ]
+      },
+      "dark-blocked": {
+        "role": "secondary",
+        "displayName": "Dark Blocked",
+        "canonical": "#FF9F4A",
+        "tonalRamp": [
+          "#270000",
+          "#520000",
+          "#751E00",
+          "#9B4400",
+          "#C36800",
+          "#EC8D35",
+          "#FFB87B",
+          "#FFE9D6"
+        ]
+      },
+      "light-background": {
+        "role": "neutral",
+        "displayName": "Light Background",
+        "canonical": "#F3F4F6",
+        "tonalRamp": [
+          "#0B0B0C",
+          "#232425",
+          "#3F4041",
+          "#5F6062",
+          "#828385",
+          "#A7A8A9",
+          "#C9CACC",
+          "#EDEEF0"
+        ]
+      },
+      "light-surface": {
+        "role": "neutral",
+        "displayName": "Light Surface",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#606060",
+          "#838383",
+          "#A8A8A8",
+          "#CACACA",
+          "#EEEEEE"
+        ]
+      },
+      "light-card": {
+        "role": "neutral",
+        "displayName": "Light Card",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#606060",
+          "#838383",
+          "#A8A8A8",
+          "#CACACA",
+          "#EEEEEE"
+        ]
+      },
+      "light-raised": {
+        "role": "neutral",
+        "displayName": "Light Raised",
+        "canonical": "#EEF0F3",
+        "tonalRamp": [
+          "#0A0B0D",
+          "#232426",
+          "#3E4042",
+          "#5F6063",
+          "#818386",
+          "#A6A8AB",
+          "#C9CBCD",
+          "#EDEFF2"
+        ]
+      },
+      "light-text": {
+        "role": "neutral",
+        "displayName": "Light Text",
+        "canonical": "#14171C",
+        "tonalRamp": [
+          "#090B0F",
+          "#212429",
+          "#3C4046",
+          "#5D6167",
+          "#7F838A",
+          "#A4A8AF",
+          "#C7CBD0",
+          "#EDEEF0"
+        ]
+      },
+      "light-secondary": {
+        "role": "neutral",
+        "displayName": "Light Secondary",
+        "canonical": "#38404E",
+        "tonalRamp": [
+          "#080B11",
+          "#1E242E",
+          "#38404E",
+          "#586170",
+          "#7B8494",
+          "#A0A8B6",
+          "#C6CBD4",
+          "#EDEEF1"
+        ]
+      },
+      "light-muted": {
+        "role": "neutral",
+        "displayName": "Light Muted",
+        "canonical": "#5F6877",
+        "tonalRamp": [
+          "#080B10",
+          "#1F242D",
+          "#39404D",
+          "#586170",
+          "#7B8492",
+          "#A1A8B4",
+          "#C6CBD3",
+          "#EDEEF1"
+        ]
+      },
+      "light-accent": {
+        "role": "primary",
+        "displayName": "Light Accent",
+        "canonical": "#1668DC",
+        "tonalRamp": [
+          "#00052F",
+          "#001966",
+          "#00349B",
+          "#0058CB",
+          "#367FEE",
+          "#6DA8FF",
+          "#A6CCFF",
+          "#E2F0FF"
+        ]
+      },
+      "light-clash": {
+        "role": "secondary",
+        "displayName": "Light Clash",
+        "canonical": "#C21F2B",
+        "tonalRamp": [
+          "#260000",
+          "#560000",
+          "#860000",
+          "#B50720",
+          "#DC4848",
+          "#F67F79",
+          "#FFB3AC",
+          "#FFE7E4"
+        ]
+      },
+      "light-blocked": {
+        "role": "secondary",
+        "displayName": "Light Blocked",
+        "canonical": "#AD4B00",
+        "tonalRamp": [
+          "#1F0000",
+          "#490700",
+          "#741D00",
+          "#9F3E00",
+          "#C46530",
+          "#E0926A",
+          "#F2BDA3",
+          "#FCEAE2"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Window title",
+        "purpose": "Main header title."
+      },
+      "heading": {
+        "displayName": "Section heading",
+        "purpose": "Section headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Shortcut rows and standard action buttons."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Filter chips and segmented choices."
+      }
+    },
+    "shadows": [
+      {
+        "name": "popup-dark",
+        "value": "0 6px 18px rgba(0,0,0,0.4314)",
+        "purpose": "Native popup shadow translated from the dark egui theme."
+      },
+      {
+        "name": "popup-light",
+        "value": "0 6px 18px rgba(0,0,0,0.1176)",
+        "purpose": "Native popup shadow translated from the light egui theme."
+      },
+      {
+        "name": "window-dark",
+        "value": "0 10px 28px rgba(0,0,0,0.4314)",
+        "purpose": "Native egui window shadow in dark appearance."
+      },
+      {
+        "name": "window-light",
+        "value": "0 10px 28px rgba(0,0,0,0.1176)",
+        "purpose": "Native egui window shadow in light appearance."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "description": "Standard native action button.",
+      "html": "<button class=\"ds-button\">Scan again</button>",
+      "css": ".ds-button{background:#22262E;color:#C3C8D2;border:1px solid #272B34;border-radius:7px;padding:5px 11px;font:13.5px -apple-system,sans-serif;cursor:pointer}.ds-button:hover{background:#30343C;color:#EEF0F4;border-color:#3A3F4C}.ds-button:active{background:#3F424A;color:#EEF0F4}.ds-button:focus-visible{outline:2px solid #5AA7FF;outline-offset:-2px}",
+      "refersTo": "button-dark"
+    },
+    {
+      "name": "Lookup input",
+      "kind": "input",
+      "description": "Input for key names or a recorded combination.",
+      "html": "<input class=\"ds-input\" aria-label=\"Look up keys\" value=\"cmd shift t\">",
+      "css": ".ds-input{background:#0B0C10;color:#EEF0F4;border:1px solid #3A3F4C;border-radius:7px;padding:7px 10px;font:17px -apple-system,sans-serif}.ds-input:focus-visible{outline:2px solid #5AA7FF;outline-offset:2px}"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "description": "Text tabs with an underline and separate keyboard focus.",
+      "html": "<nav class=\"ds-nav\" role=\"tablist\" aria-label=\"Main views\"><button role=\"tab\" aria-selected=\"true\">Look up keys</button><button role=\"tab\" aria-selected=\"false\">Keyboard map</button></nav>",
+      "css": ".ds-nav{display:flex;gap:20px;background:#15171C}.ds-nav button{background:transparent;color:#8E95A3;border:0;border-bottom:2.5px solid transparent;height:34px;padding:0 3px;font:13.5px -apple-system,sans-serif}.ds-nav button[aria-selected=true]{color:#EEF0F4;border-bottom-color:#5AA7FF}.ds-nav button:hover{color:#C3C8D2}.ds-nav button:focus-visible{outline:2px solid #5AA7FF;outline-offset:-2px}"
+    },
+    {
+      "name": "Conflict filter",
+      "kind": "chip",
+      "description": "Toggle that filters conflict kinds.",
+      "html": "<button class=\"ds-chip\" role=\"checkbox\" aria-checked=\"true\"><span class=\"ds-chip-dot\" aria-hidden=\"true\"></span>Clash</button>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:6px;height:26px;background:#362329;color:#EEF0F4;border:1px solid #80383E;border-radius:13px;padding:0 11px 0 9px;font:500 12.5px -apple-system,sans-serif;cursor:pointer}.ds-chip-dot{width:8px;height:8px;border-radius:50%;background:#FF5C61}.ds-chip[aria-checked=false]{background:transparent;border-color:#272B34;color:#8E95A3}.ds-chip[aria-checked=false]:hover{background:#22262E;border-color:#3A3F4C;color:#C3C8D2}.ds-chip[aria-checked=false] .ds-chip-dot{background:transparent;border:1.5px solid #C77982}.ds-chip:focus-visible{outline:2px solid #5AA7FF;outline-offset:-2px}"
+    },
+    {
+      "name": "Shortcut card",
+      "kind": "card",
+      "description": "Container for related shortcut observations.",
+      "html": "<section class=\"ds-card\"><strong>Matched shortcuts</strong><p>One unique match per key observation.</p></section>",
+      "css": ".ds-card{background:#181B21;color:#EEF0F4;border:1px solid #272B34;border-radius:12px;padding:12px 16px;font:13.5px -apple-system,sans-serif}.ds-card p{color:#8E95A3;font-size:12.5px}",
+      "refersTo": "card-dark"
+    },
+    {
+      "name": "Keyboard key",
+      "kind": "custom",
+      "description": "Selectable key in the keyboard map.",
+      "html": "<button class=\"ds-key\" aria-label=\"Command T, shared by apps\">T</button>",
+      "css": ".ds-key{width:55px;height:42px;background:#272B34;color:#EEF0F4;border:1px solid #3D4350;border-radius:7px;box-shadow:0 1.5px 0 #07080A;font:13.5px -apple-system,sans-serif;text-align:left;padding:5px 7px}.ds-key:hover{border-color:#8E95A3}.ds-key:focus-visible{outline:2px solid #5AA7FF;outline-offset:2px}"
+    },
+    {
+      "name": "Appearance choices",
+      "kind": "custom",
+      "description": "Joined radio choices used in Settings. Auto follows macOS appearance.",
+      "html": "<div class=\"ds-segmented\" role=\"radiogroup\" aria-label=\"Appearance\"><button role=\"radio\" aria-checked=\"true\">Auto</button><button role=\"radio\" aria-checked=\"false\">Light</button><button role=\"radio\" aria-checked=\"false\">Dark</button></div>",
+      "css": ".ds-segmented{display:inline-flex;gap:2px;padding:2px;background:#22262E;border:1px solid #272B34;border-radius:8px}.ds-segmented button{height:22px;padding:0 10px;background:transparent;border:1px solid transparent;border-radius:6px;color:#8E95A3;font:500 12.5px -apple-system,sans-serif;cursor:pointer}.ds-segmented button[aria-checked=true]{background:#3F424A;border-color:#3A3F4C;color:#EEF0F4}.ds-segmented button[aria-checked=false]:hover{background:#2E323A}.ds-segmented button:focus-visible{outline:2px solid #5AA7FF;outline-offset:-2px}"
+    },
+    {
+      "name": "Settings appearance card",
+      "kind": "card",
+      "refersTo": "card-dark",
+      "description": "Full-width Settings card with a heading and trailing appearance choices. HTML is a visual reference for the native window.",
+      "html": "<section class=\"ds-settings-card\"><h3>Appearance</h3><div class=\"ds-segmented\" role=\"radiogroup\" aria-label=\"Appearance\"><button role=\"radio\" aria-checked=\"true\">Auto</button><button role=\"radio\" aria-checked=\"false\">Light</button><button role=\"radio\" aria-checked=\"false\">Dark</button></div></section>",
+      "css": ".ds-settings-card{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#181B21;color:#EEF0F4;border:1px solid #272B34;border-radius:12px;padding:12px 16px;font:13.5px -apple-system,sans-serif}.ds-settings-card h3{margin:0;font-size:15px;font-weight:600}.ds-segmented{display:inline-flex;gap:2px;padding:2px;background:#22262E;border:1px solid #272B34;border-radius:8px}.ds-segmented button{height:22px;padding:0 10px;background:transparent;border:1px solid transparent;border-radius:6px;color:#8E95A3;font:500 12.5px -apple-system,sans-serif;cursor:pointer}.ds-segmented button[aria-checked=true]{background:#3F424A;border-color:#3A3F4C;color:#EEF0F4}.ds-segmented button[aria-checked=false]:hover{background:#2E323A}.ds-segmented button:focus-visible{outline:2px solid #5AA7FF;outline-offset:-2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Compact shortcut reference",
+    "overview": "Preserve the existing compact interface that Bobby confirmed on 2026-11-12.\nThe interface supports repeated lookup and comparison. App names, actions, and key combinations carry the hierarchy.\nThis record describes the current Rust/egui implementation. It does not establish a new visual direction.",
+    "keyCharacteristics": [
+      "Dense shortcut rows grouped by app or conflict.",
+      "Native macOS interface fonts and recognizable modifier symbols.",
+      "Light, dark, and system appearance choices.",
+      "Explicit origin, uncertainty, and running-state labels."
+    ],
+    "rules": [
+      {
+        "name": "The Evidence Rule",
+        "body": "A status color accompanies a text label. Color alone does not establish a conflict or action outcome.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Preserve the compact interface and established icon.",
+      "Use the active theme and shared controls.",
+      "Check keyboard focus and macOS accessibility output after custom painting changes.",
+      "Keep uncertain usage matches separate from uniquely matched shortcuts."
+    ],
+    "donts": [
+      "Do not treat the sidecar's browser previews as native UI validation.",
+      "Do not introduce web or iOS navigation patterns into this macOS app."
+    ]
+  }
+}
