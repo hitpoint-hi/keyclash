@@ -40,7 +40,7 @@ All windows use demo data with Apple apps and tools that Keyclash reads (AeroSpa
 3. **Fresh history: prepared** on the local `public` branch, without the internal review records.
 4. **Vendored kit code.** `assets/` comes from the `design-taste-frontend` skill. Its licence for redistribution is not confirmed.
 5. **Domain.** Turn on the `canonical` link in the head, and make `og:image` an absolute URL, when keyclash.app points here.
-6. **Hosting.** Not set up. GitHub Pages from this folder, with a `CNAME` file for keyclash.app, is one option.
+6. **Hosting.** Any static file server works. The page has no inline scripts, so a strict `script-src 'self'` Content-Security-Policy works.
 
 ## Design checks
 
