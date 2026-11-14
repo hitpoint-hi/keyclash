@@ -30,7 +30,7 @@ Site: [keyclash.app](https://keyclash.app). Its source is in [site/](site/).
 
 Keyclash 0.1.0 is an early version for friends. It is not signed with an Apple developer account, so macOS asks you to allow it one time.
 
-1. Unzip `Keyclash-0.1.0.zip` and move **Keyclash** to your Applications folder.
+1. Download `Keyclash-0.1.0.zip` from the [latest release](https://github.com/hitpoint-hi/keyclash/releases/latest), unzip it, and move **Keyclash** to your Applications folder.
 2. Open Keyclash. macOS shows a message that it cannot check the app.
 3. Open System Settings › Privacy & Security. Go down to the message about Keyclash and click **Open Anyway**.
 4. Read the welcome page and click **Start**.
