@@ -28,14 +28,14 @@ Site: [keyclash.app](https://keyclash.app). Its source is in [site/](site/).
 
 ## Install
 
-Keyclash 0.1.0 is an early version for friends. It is not signed with an Apple developer account, so macOS asks you to allow it one time.
+Keyclash 0.1.1 is an early version for friends. It is signed with an Apple Developer ID and notarized by Apple, so macOS opens it without a warning.
 
-1. Download `Keyclash-0.1.0.zip` from the [latest release](https://github.com/hitpoint-hi/keyclash/releases/latest), unzip it, and move **Keyclash** to your Applications folder.
-2. Open Keyclash. macOS shows a message that it cannot check the app.
-3. Open System Settings › Privacy & Security. Go down to the message about Keyclash and click **Open Anyway**.
-4. Read the welcome page and click **Start**.
-5. Click **Ask macOS for permission** and turn on Keyclash in the Accessibility list. Without this permission, Keyclash still shows the shortcuts that it finds in files.
-6. Optional: macOS guards the settings of sandboxed apps (for example macshot and Maccy). To see their hotkeys, turn on Keyclash in System Settings › Privacy & Security › Full Disk Access, then click **Scan again**. The "Where we looked" tab tells you when macOS blocked these files.
+1. Download `Keyclash-0.1.1.zip` from the [latest release](https://github.com/hitpoint-hi/keyclash/releases/latest), unzip it, and move **Keyclash** to your Applications folder.
+2. Open Keyclash. Read the welcome page and click **Start**.
+3. Click **Ask macOS for permission** and turn on Keyclash in the Accessibility list. Without this permission, Keyclash still shows the shortcuts that it finds in files.
+4. Optional: macOS guards the settings of sandboxed apps (for example macshot and Maccy). To see their hotkeys, turn on Keyclash in System Settings › Privacy & Security › Full Disk Access, then click **Scan again**. The "Where we looked" tab tells you when macOS blocked these files.
+
+Update from 0.1.0: replace the old app in Applications. Version 0.1.0 had a different signature, so macOS asks for Accessibility again one time. If Keyclash shows as on but does not work, select it in the Accessibility list, remove it with **−**, and turn it on again.
 
 Keyclash runs on Apple Silicon and Intel Macs. It was tested on one Mac only (Apple Silicon, macOS 27), so tell me what looks wrong on yours.
 
