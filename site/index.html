@@ -1,565 +1,308 @@
 <!doctype html>
-<html lang="en" data-type="software" data-radius="soft" data-ground="sky" data-buttons="arrow" data-motion>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Keyclash: a keyboard shortcut map for the Mac</title>
-<meta name="description" content="A free, open-source macOS app that lists every shortcut on your Mac, finds the ones that clash and shows the keys still free.">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Keyclash: a keyboard shortcut map for the Mac">
-<meta property="og:description" content="Every shortcut on your Mac in one map, with the clashes marked. Free and open source.">
-<meta property="og:image" content="https://keyclash.app/share.jpg">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="logo-192.png" type="image/png">
-<link rel="apple-touch-icon" href="icon-512.png">
-<meta name="theme-color" content="#0e1014">
-<link rel="canonical" href="https://keyclash.app/">
-<meta property="og:url" content="https://keyclash.app/">
-<meta name="site-kind" content="software">
-<meta name="page-type" content="software">
-<!-- fonts are self-hosted (SIL Open Font License): the page makes no request to another server -->
-<style>
-@font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 700; font-display: swap; src: url(fonts/schibsted-grotesk.woff2) format("woff2"); }
-@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 400 500; font-display: swap; src: url(fonts/jetbrains-mono.woff2) format("woff2"); }
-</style>
-<link rel="preload" href="fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/system.css">
-<link rel="stylesheet" href="assets/ui/cards.css">
-<link rel="stylesheet" href="assets/motion/motion.css">
-<link rel="stylesheet" href="assets/backgrounds/backgrounds.css">
-<link rel="stylesheet" href="assets/layout/layout.css">
-<link rel="stylesheet" href="assets/icons/icon.css">
-<style>
-:root {
-  --p-bg: #0e1014; --p-surface: #15171c; --p-ink: #eef0f4; --p-muted: #8e95a3;
-  --p-accent: #5aa7ff; --p-accent-ink: #0e1014; --p-action: #5aa7ff; --p-action-ink: #0e1014;
-  --p-inv-bg: #eef0f4; --p-inv-surface: #dcdee2; --p-inv-ink: #0e1014; --p-inv-muted: #595b5f;
-  --p-inv-accent: #0e1014; --p-inv-accent-ink: #eef0f4; --p-inv-action: #0e1014; --p-inv-action-ink: #eef0f4;
-  --font-display: "Schibsted Grotesk", system-ui, sans-serif;
-  --font-text: "Schibsted Grotesk", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --display-weight: 400;
-  --display-tracking: -0.035em;
-  --display-tracking-xl: -0.042em;
-  --ly-scale: 0.98;
-}
-</style>
-<link rel="stylesheet" href="assets/ui/base.css">
-<script src="boot.js"></script>
-<script src="assets/backgrounds/backgrounds.js"></script>
-
-<link rel="modulepreload" href="assets/moments/moments.js">
-<link rel="modulepreload" href="assets/moments/lib.js">
-<link rel="modulepreload" href="assets/moments/iris-opens/moment.js">
-<!-- page CSS: the Keyclash windows drawn in HTML (the app's own colours from src/theme.rs), and one --p-h per card group -->
-<style>
-  /* the app's palette, used only inside the drawn windows */
-  .kc { --k-bg: #0e1014; --k-surface: #15171c; --k-card: #181b21; --k-raised: #22262e; --k-line: #272b34; --k-line2: #3a3f4c;
-        --k-text: #eef0f4; --k-text2: #c3c8d2; --k-muted: #8e95a3; --k-accent: #5aa7ff;
-        --k-cmd: #4cc2ff; --k-opt: #f5c542; --k-shift: #4ade80; --k-ctrl: #ff7ac8; --k-clash: #ff5c61; --k-blocks: #ff9f4a;
-        --k-cap: #272b34; --k-capline: #3d4350;
-        font: 400 13px/1.4 var(--font-text); color: var(--k-text); background: var(--k-bg);
-        border: 1px solid var(--k-line2); border-radius: 14px; overflow: hidden; text-align: left;
-        box-shadow: 0 1px 0 rgb(255 255 255 / .04) inset, 0 30px 60px -30px rgb(0 0 0 / .8); }
-  .kc__bar { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 14px; background: var(--k-surface); border-bottom: 1px solid var(--k-line); color: var(--k-muted); white-space: nowrap; }
-  .kc__dots { flex: none; fill: #3a3f4c; }
-  .kc__bar b { color: var(--k-text); font-weight: 500; } .kc__bar .sp { flex: 1; }
-  .kc__tabs { display: flex; gap: 18px; padding: 0 16px; border-bottom: 1px solid var(--k-line); color: var(--k-muted); white-space: nowrap; overflow: hidden; }
-  .kc__tabs span { padding: 10px 0 9px; } .kc__tabs .on { color: var(--k-text); box-shadow: inset 0 -2px 0 var(--k-accent); }
-  .kc kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px; background: var(--k-cap); border: 1px solid var(--k-capline); font: 500 12px/1 var(--font-text); color: var(--k-text); }
-  .kc kbd.m-cmd { color: var(--k-cmd); } .kc kbd.m-opt { color: var(--k-opt); } .kc kbd.m-shift { color: var(--k-shift); } .kc kbd.m-ctrl { color: var(--k-ctrl); }
-  .kc .keys { display: inline-flex; gap: 3px; }
-  .kc .tag { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 99px; font-size: 12px; font-weight: 500; }
-  .kc .tag--clash { color: var(--k-clash); background: rgb(255 92 97 / .14); } .kc .tag--blocks { color: var(--k-blocks); background: rgb(255 159 74 / .14); }
-
-  .hero--centred .hero__lead { color: var(--ink); }
-  footer .close__word { line-height: 1.04; }
-  main > #tour { height: auto; min-height: 0; scroll-margin-top: var(--nav); }
-  #tour .tour-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr); gap: var(--s-7); align-items: start; }
-  #tour h2 { margin-bottom: var(--s-6); }
-  #tour video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 1px solid var(--line); border-radius: 14px; background: #101319; }
-  #tour details { margin-top: var(--s-3); }
-  #tour summary { width: fit-content; cursor: pointer; }
-  #tour details p { margin-top: var(--s-3); max-width: 62ch; }
-  #tour ol { padding-left: 1.4em; list-style: decimal; }
-  #tour li { margin-top: var(--s-4); padding-left: .25em; }
-  #tour li a { text-decoration: underline; text-underline-offset: .15em; }
-  @media (max-width: 799px) { #tour .tour-layout { grid-template-columns: 1fr; } }
-  /* hero: the Conflicts tab */
-  .hero__window { background: radial-gradient(70% 90% at 50% 0%, #2f4a6e 0%, #182232 55%, #0e1014 100%); }
-  .hero__window > .ly-piece { width: min(960px, calc(100% - 2 * var(--s-6))); }
-  .kc-sum { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--k-line); flex-wrap: wrap; }
-  .kc-sum span { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 12px; border-radius: 9px; background: var(--k-card); border: 1px solid var(--k-line); color: var(--k-text2); }
-  .kc-sum b { font-size: 18px; font-weight: 500; } .kc-sum .c b { color: var(--k-clash); } .kc-sum .o b { color: var(--k-blocks); }
-  .kc-conf { display: grid; gap: 10px; padding: 14px 16px; }
-  .kc-card { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 14px; align-items: center; padding: 12px 14px; border-radius: 10px; background: var(--k-card); border: 1px solid var(--k-line); }
-  .kc-card p { margin: 0; color: var(--k-text2); } .kc-card p b { color: var(--k-text); font-weight: 500; }
-  .kc-card small { grid-column: 2 / -1; color: var(--k-muted); font-size: 12px; }
-  .kc-card small a, .kc-card small u { color: var(--k-accent); text-decoration: none; }
-  .kc-card .free { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle; }
-
-  /* the keyboard map (app-frame) */
-  .kmap { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); margin-top: var(--s-7); }
-  .kmap__main { padding: 16px 18px; border-right: 1px solid var(--k-line); min-width: 0; }
-  .kmap__mods { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; color: var(--k-muted); }
-  .kmap__mods button { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--k-line2); background: var(--k-card); color: var(--k-text2); font: 500 13px/1 var(--font-text); cursor: pointer; }
-  .kmap__mods button i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid currentColor; }
-  .kmap__mods button[aria-pressed="true"] { color: var(--k-text); background: rgb(90 167 255 / .14); border-color: var(--k-accent); }
-  .kmap__mods button[aria-pressed="true"] i { background: currentColor; }
-  .kmap__mods button[data-mod="ctrl"] i { color: var(--k-ctrl); } .kmap__mods button[data-mod="opt"] i { color: var(--k-opt); }
-  .kmap__mods button[data-mod="shift"] i { color: var(--k-shift); } .kmap__mods button[data-mod="cmd"] i { color: var(--k-cmd); }
-  .kmap__legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0 0 12px; padding: 0; list-style: none; color: var(--k-muted); font-size: 12px; }
-  .kmap__legend li { display: inline-flex; align-items: center; gap: 6px; } .kmap__legend i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--k-capline); }
-  .kb { display: grid; gap: 5px; }
-  .kb__row { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 5px; }
-  .kb button { position: relative; height: 68px; min-width: 0; padding: 5px 6px; border-radius: 7px; border: 1px solid var(--k-capline); border-bottom-width: 3px; border-bottom-color: #07080a;
-               background: var(--k-cap); color: var(--k-text2); font: 500 13px/1 var(--font-text); text-align: left; display: flex; align-items: flex-start; justify-content: space-between; cursor: pointer; }
-  .kb button small { position: absolute; right: 6px; bottom: 5px; font-size: 12px; color: var(--k-muted); }
-  .kb button[data-s="app"]    { background: #1d3550; border-color: #2f5b8a; color: var(--k-text); }
-  .kb button[data-s="shared"] { background: #343a46; border-color: #4a5160; color: var(--k-text); }
-  .kb button[data-s="blocks"] { background: #4a3218; border-color: var(--k-blocks); color: var(--k-text); }
-  .kb button[data-s="clash"]  { background: #4d1d22; border-color: var(--k-clash); color: var(--k-text); }
-  .kb button[data-mod-key][aria-pressed="true"] { background: rgb(90 167 255 / .2); border-color: var(--k-accent); color: var(--k-text); }
-  .kb button.is-sel { outline: 2px solid var(--k-text); outline-offset: 1px; }
-  .kb button { grid-column: span 2; } .kb .w15 { grid-column: span 3; } .kb .w2 { grid-column: span 4; } .kb .w25 { grid-column: span 5; } .kb .wsp { grid-column: span 12; } .kb .w1 { grid-column: span 2; }
-  .kmap__side { display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; }
-  .kmap__head { padding: 14px 16px 10px; border-bottom: 1px solid var(--k-line); }
-  .kmap__head .kmap__t { margin: 0; font: 500 14px/1.3 var(--font-text); color: var(--k-text); letter-spacing: 0; }
-  .kmap__head p { margin: 4px 0 0; color: var(--k-muted); font-size: 12px; }
-  .kmap__list { margin: 0; padding: 6px 8px; list-style: none; overflow: hidden; }
-  .kmap__list li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 8px; border-radius: 8px; }
-  .kmap__list li + li { border-top: 1px solid var(--k-line); }
-  .kmap__list b { font-weight: 500; color: var(--k-text); } .kmap__list span { grid-column: 1; color: var(--k-muted); font-size: 12px; }
-  .kmap__list .keys { grid-row: 1 / span 2; grid-column: 2; align-self: center; }
-  .kmap__list .tag { justify-self: start; grid-column: 1; margin-top: 2px; }
-  @media (max-width: 1279px) { .kb button { height: 38px; font-size: 12px; } .kb button small { display: none; } }
-  @media (max-width: 1023px) { .kmap { grid-template-columns: 1fr; } .kmap__main { border-right: 0; border-bottom: 1px solid var(--k-line); } .kmap__list li:nth-child(n+4) { display: none; } }
-  @media (max-width: 639px) { .kb { gap: 3px; } .kb__row { gap: 3px; } .kb button { height: 30px; padding: 3px; font-size: 12px; border-radius: 5px; border-bottom-width: 2px; } .kmap__main { padding: 12px; } .kmap__legend { font-size: 12px; gap: 4px 10px; } .kmap__list li:nth-child(n+3) { display: none; } .kb__row[data-row="fn"] { display: none; } }
-
-  /* Peek */
-  :is(#peek, #source) .frame { background: linear-gradient(160deg, var(--ground-surface), var(--ground-bg)); border-color: transparent; }
-  .peek { position: absolute; left: 48px; top: 48px; width: calc(100% - 96px); }
-  .peek__head { display: flex; align-items: baseline; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--k-line); }
-  .peek__head b { font-size: 20px; font-weight: 500; } .peek__head span { color: var(--k-muted); }
-  .peek__filter { margin: 12px 18px 4px; height: 32px; display: flex; align-items: center; padding: 0 10px; border-radius: 8px; background: #0b0c10; border: 1px solid var(--k-accent); color: var(--k-text); }
-  .peek__filter::after { content: ""; width: 1px; height: 16px; margin-left: 2px; background: var(--k-accent); animation: kc-caret 1s steps(1) infinite; }
-  @keyframes kc-caret { 50% { opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .peek__filter::after { animation: none; } }
-  .peek__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; padding: 6px 18px 18px; }
-  .peek .peek__g { margin: 12px 0 6px; font: 500 12px/1 var(--font-text); color: var(--k-muted); letter-spacing: .02em; }
-  .peek__row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 6px; border-radius: 6px; color: var(--k-text2); }
-  .peek__row.on { background: rgb(90 167 255 / .16); color: var(--k-text); }
-  .peek__row .warn { color: var(--k-blocks); font-size: 12px; margin-left: 6px; }
-  @media (max-width: 1279px) { .peek { width: 560px; left: 32px; top: 32px; } }
-  @media (max-width: 639px) { .peek { left: 16px; top: 16px; width: 360px; } .peek__cols { grid-template-columns: 1fr; } .peek__cols > div + div { display: none; } }
-
-  /* feature cards */
-  #features .panel { --p-h: 220px; }
-  @media (max-width: 639px) {  }
-  .kc--card { position: absolute; left: 24px; right: 24px; top: 28px; }
-  .kc--card .kc__bar { height: 34px; }
-  .kc-look { padding: 12px 14px; display: grid; gap: 10px; }
-  .kc-look__q { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border-radius: 8px; background: #0b0c10; border: 1px solid var(--k-line2); }
-  .kc-look__v { color: var(--k-text2); } .kc-look__v b { color: var(--k-text); font-weight: 500; }
-  .kc-rows { display: grid; } .kc-rows div { display: grid; grid-template-columns: 92px 1fr auto; gap: 10px; padding: 8px 14px; border-top: 1px solid var(--k-line); color: var(--k-text2); }
-  .kc-rows div:first-child { border-top: 0; color: var(--k-muted); font-size: 12px; }
-  .kc-rows em { font-style: normal; color: var(--k-muted); }
-  .kc-use { padding: 12px 14px; display: grid; gap: 9px; }
-  .kc-use div { display: grid; grid-template-columns: 70px 1fr 40px; gap: 10px; align-items: center; color: var(--k-text2); }
-  .kc-use i { display: block; height: 8px; border-radius: 99px; background: var(--k-accent); width: var(--w); }
-  .kc-use span:last-child { text-align: right; color: var(--k-muted); font-variant-numeric: tabular-nums; }
-  .kc-term { padding: 12px 14px; font: 400 12px/1.65 var(--font-mono); color: var(--k-text2); white-space: pre-wrap; }
-  .kc-term .p { color: var(--k-muted); } .kc-term .add { color: var(--k-shift); } .kc-term .del { color: var(--k-clash); }
-
-  /* privacy: the data folder */
-  .kc-files { margin: 0; padding: 6px 0; list-style: none; }
-  .kc-files li { display: grid; grid-template-columns: 22px 150px 1fr; gap: 10px; align-items: center; padding: 13px 16px; color: var(--k-text2); }
-  .kc-files li + li { border-top: 1px solid var(--k-line); }
-  .kc-files svg { width: 16px; height: 16px; color: var(--k-muted); }
-  .kc-files code { font: 400 12px/1.3 var(--font-mono); color: var(--k-text); }
-  .faq__icon { display: block; width: 168px; height: auto; margin-top: var(--s-7); }
-  @media (max-width: 639px) { .faq__icon { width: 64px; margin-top: var(--s-5); } #faq .t-lead, .faq__item:first-child, #privacy .facts { display: none; }
-  @media (max-width: 359px) { .faq__item:nth-child(4) { display: none; } } #peek .facts, #source .facts, .hero__c .pill .muted { display: none; } #features .panel { --p-h: 112px; } .kc-files li:nth-child(n+4), .kc-set__row:nth-child(3) { display: none; } #features .card > p { font-size: 15px; } }
-  @media (min-width: 640px) and (max-width: 1023px) { .faq__icon { width: 96px; margin-top: var(--s-5); } .kc-set__row:nth-child(3), .kc-files li:nth-child(n+5) { display: none; } }
-  @media (max-width: 1279px) { .term .c { display: none; } }
-  .kc-stack { display: grid; gap: var(--s-5); grid-template-rows: minmax(0, 1fr) auto; align-self: stretch; }
-  @media (max-width: 1023px) { .kc-stack { grid-template-rows: auto; } }
-  .kc-set__row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; }
-  .kc-set__row + .kc-set__row { border-top: 1px solid var(--k-line); }
-  .kc-set__row b { display: block; font-weight: 500; } .kc-set__row span { color: var(--k-muted); }
-  .kc-toggle { flex: none; width: 38px; height: 22px; border-radius: 99px; background: var(--k-line2); position: relative; }
-  .kc-toggle::after { content: ""; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--k-text2); }
-  .kc-set__row .kc-chip { flex: none; height: 28px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: 7px; background: var(--k-raised); color: var(--k-text); }
-  @media (max-width: 639px) { .kc-files li { grid-template-columns: 18px 1fr; } .kc-files li span { grid-column: 2; } .kc-files li:nth-child(n+5) { display: none; } }
-  @media (max-width: 639px) { .hero__window .kc__bar > span, .hero__window .kc__tabs span:nth-child(n+4), .term .c, .kc-term .p:first-child { display: none; } .kc-card { grid-template-columns: auto 1fr; } .kc-card .tag { grid-column: 2; grid-row: 1; justify-self: end; } .kc-card p { grid-column: 1 / -1; } .kc-card small { display: none; } }
-  .facts { margin: var(--s-6) 0 0; padding: 0; list-style: none; display: grid; gap: var(--s-3); font-size: var(--t-body); }
-  .facts { gap: 0; } .facts li { padding: var(--s-3) 0; border-top: 1px solid var(--line); }
-
-  /* build from source: the terminal */
-  .term { font: 400 14px/1.75 var(--font-mono); color: var(--k-text2); padding: 18px 20px; white-space: pre; overflow: hidden; }
-  .term .p { color: var(--k-muted); user-select: none; } .term .c { color: var(--k-muted); }
-  @media (max-width: 639px) { .term { font-size: 12px; padding: 14px; } }
-  .kc--split { position: absolute; left: 48px; top: 48px; width: calc(100% - 96px); }
-  @media (max-width: 1279px) { .kc--split { left: 32px; top: 32px; } }
-  @media (max-width: 639px) { .kc--split { left: 16px; top: 16px; width: 520px; } }
-</style>
-</head>
-<body>
-<!-- type: software (a developer tool: an open-source macOS app)
-     deal: hero centred, nav nav-centre, close close-word, footer footer-dark, rhythm space, buttons arrow,
-     mark: the app's own icon (assets/icon-512.png) in place of the dealt stack mark, grounds: lit ground sky on the card panels;
-     palette: Keyclash's own colours from DESIGN.md (start.mjs brand), type schibsted
-     moments: iris-opens on #privacy (ground-surface after the base ground) -->
-
-<header class="nav nav--centre">
-  <div class="wrap nav__bar">
-    <a class="skip-link" href="#top">Skip to content</a>
-    <a class="nav__logo" href="#top"><img src="logo-192.png" width="28" height="28" alt="" style="border-radius:7px">Keyclash</a>
-    <nav class="nav__links" aria-label="Main">
-      <div class="nav__item"><a class="nav__link" href="#map">Map</a></div>
-      <div class="nav__item"><a class="nav__link" href="#peek">Peek</a></div>
-      <div class="nav__item"><a class="nav__link" href="#features">Features</a></div>
-      <div class="nav__item"><a class="nav__link" href="#privacy">Privacy</a></div>
-      <div class="nav__item"><a class="nav__link" href="#source">Source</a></div>
-    </nav>
-    <div class="nav__actions">
-      <a class="btn btn--primary" href="https://github.com/hitpoint-hi/keyclash">View on GitHub</a>
-    </div>
-    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
-      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    </button>
-  </div>
-</header>
-
-<main id="top">
-  <section class="hero hero--centred" data-enter aria-labelledby="hero-h">
-    <div class="wrap"><div class="hero-text">
-      <div class="hero__c">
-        <a class="pill" href="#source"><span>Version 0.1.1 for macOS</span><span class="muted">Free and open source</span></a>
-        <h1 id="hero-h">A keyboard shortcut map for your Mac</h1>
-        <p class="hero__lead">Keyclash reads macOS, your app menus and tool configs, lists every keyboard shortcut it finds, and marks the ones that clash.</p>
-        <div class="btn-row">
-          <a class="btn btn--primary" href="https://github.com/hitpoint-hi/keyclash/releases/latest/download/Keyclash.zip" download>Download for Mac</a>
-          <a class="btn btn--secondary" href="#tour">Watch the 65-second tour</a>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Keyclash: a keyboard shortcut map for the Mac</title>
+    <meta
+      name="description"
+      content="A free, open-source macOS app that lists every shortcut on your Mac, finds the ones that clash and shows the keys still free."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Keyclash: a keyboard shortcut map for the Mac" />
+    <meta
+      property="og:description"
+      content="Every shortcut on your Mac in one map, with the clashes marked. Free and open source."
+    />
+    <meta property="og:image" content="https://keyclash.app/share.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="logo-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icon-512.png" />
+    <meta name="theme-color" content="#f7f5ef" />
+    <link rel="canonical" href="https://keyclash.app/" />
+    <meta property="og:url" content="https://keyclash.app/" />
+    <link rel="stylesheet" href="homepage.css" />
+    <link rel="preload" href="fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin />
+  </head>
+  <body id="top">
+    <a class="skip" href="#content">Skip to content</a>
+    <header class="mast wrap">
+      <a class="brand" href="#top"><img src="logo-192.png" width="35" height="35" alt="" />Keyclash</a>
+      <nav aria-label="Main">
+        <a href="#map">Keyboard map</a><a href="#tour">Tour</a><a href="#privacy">Privacy</a>
+      </nav>
+      <a class="repo-link" href="https://github.com/hitpoint-hi/keyclash"
+        >GitHub <span aria-hidden="true">↗</span></a
+      >
+    </header>
+    <main id="content">
+      <section class="hero wrap" aria-labelledby="hero-h">
+        <div class="pitch">
+          <h1 id="hero-h">Who owns<br />that <em>key?</em></h1>
+          <p>
+            Two apps, one shortcut. Keyclash maps the shortcuts on your Mac, shows where they clash, and helps
+            you find a free combination.
+          </p>
+          <div class="actions">
+            <a
+              class="button"
+              href="https://github.com/hitpoint-hi/keyclash/releases/latest/download/Keyclash.zip"
+              ><svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4" /></svg
+              >Download for Mac</a
+            ><a class="tour-link" href="#tour"
+              ><svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" />
+                <path d="m10 8 6 4-6 4z" /></svg
+              >Watch tour <small>1:05</small></a
+            >
+          </div>
+          <p class="release">
+            <span class="dot"></span>v0.1.1 <span>·</span> macOS 11+ <span>·</span> Free &amp; open source
+          </p>
         </div>
+        <figure class="plate">
+          <div class="photo">
+            <img
+              src="media/modifier-keys.jpg"
+              width="1200"
+              height="900"
+              alt="Orange Command, graphite Option, and ivory Shift keycaps suspended above one another."
+              fetchpriority="high"
+            />
+          </div>
+          <figcaption>
+            <span>Modifier keys</span><span>⌘ Command &nbsp; ⌥ Option &nbsp; ⇧ Shift</span>
+          </figcaption>
+        </figure>
+      </section>
+      <div class="sources wrap">
+        <span>Reads shortcuts from</span>
+        <div>macOS menus</div>
+        <div>AeroSpace</div>
+        <div>skhd</div>
+        <div>Karabiner-Elements</div>
+        <div>Wispr Flow</div>
       </div>
-      <div class="hero__window" role="img" aria-label="The Keyclash window on its Conflicts tab: skhd and the input-source switch both take Control-Space, and a window manager takes Option-Command-H from Hide Others">
-        <div class="ly-piece ui kc" data-ui="" aria-hidden="true">
-          <div class="kc__bar"><svg class="kc__dots" viewBox="0 0 47 11" width="47" height="11" aria-hidden="true"><circle cx="5.5" cy="5.5" r="5.5"/><circle cx="23.5" cy="5.5" r="5.5"/><circle cx="41.5" cy="5.5" r="5.5"/></svg><b>Keyclash</b><span>412 shortcuts from 23 apps and tools</span><span class="sp"></span><span>Scan again</span></div>
-          <div class="kc-sum"><span class="c"><b>2</b>Clash</span><span class="o"><b>3</b>Blocks an app</span><span><b>38</b>Shared by apps</span></div>
-          <div class="kc__tabs"><span class="on">Conflicts</span><span>Keyboard map</span><span>Look up keys</span><span>All shortcuts</span><span>By app</span><span>Use</span></div>
-          <div class="kc-conf">
-            <div class="kc-card"><span class="keys"><kbd class="m-ctrl">⌃</kbd><kbd>Space</kbd></span><p><b>skhd</b> and <b>macOS input sources</b> both take this key</p><span class="tag tag--clash">Clash</span><small>Edit ~/.skhdrc · Free nearby <span class="free"><kbd class="m-ctrl">⌃</kbd><kbd class="m-shift">⇧</kbd><kbd>Space</kbd></span></small></div>
-            <div class="kc-card"><span class="keys"><kbd class="m-opt">⌥</kbd><kbd class="m-cmd">⌘</kbd><kbd>H</kbd></span><p><b>AeroSpace</b> takes it before <b>Hide Others</b> in 19 apps</p><span class="tag tag--blocks">Blocks an app</span><small>Edit ~/.aerospace.toml · Free nearby <span class="free"><kbd class="m-opt">⌥</kbd><kbd class="m-cmd">⌘</kbd><kbd>J</kbd></span></small></div>
-            <div class="kc-card"><span class="keys"><kbd class="m-shift">⇧</kbd><kbd class="m-cmd">⌘</kbd><kbd>5</kbd></span><p><b>Screenshot</b> takes it before <b>Heading 5</b> in Bear</p><span class="tag tag--blocks">Blocks an app</span><small>Change it in System Settings › Keyboard › Shortcuts</small></div>
+      <section class="map-section" id="map" aria-labelledby="map-h">
+        <div class="wrap">
+          <div class="section-intro">
+            <h2 id="map-h">Meet your <em>keymap.</em></h2>
+            <p>
+              Try this example Mac. Toggle a modifier, then select a key to see which apps claim the shortcut.
+            </p>
+          </div>
+          <div class="kmap" id="kmap">
+            <div class="kmap__main">
+              <div class="kmap__mods" role="group" aria-label="Modifier keys">
+                <button type="button" data-mod="ctrl" aria-pressed="true"><i></i>⌃ control</button>
+                <button type="button" data-mod="opt" aria-pressed="false"><i></i>⌥ option</button>
+                <button type="button" data-mod="shift" aria-pressed="false"><i></i>⇧ shift</button>
+                <button type="button" data-mod="cmd" aria-pressed="false"><i></i>⌘ command</button>
+              </div>
+              <ul class="kmap__legend">
+                <li><i style="background: #272b34"></i>Free</li>
+                <li><i style="background: #1d3550; border-color: #2f5b8a"></i>One app</li>
+                <li><i style="background: #343a46"></i>Shared by apps</li>
+                <li><i style="background: #4a3218; border-color: #ff9f4a"></i>System-wide</li>
+                <li><i style="background: #4d1d22; border-color: #ff5c61"></i>Clash</li>
+              </ul>
+              <div class="kb-scroll" role="region" aria-label="Scrollable example keyboard" tabindex="0">
+                <div class="kb" id="kb"></div>
+              </div>
+            </div>
+            <div class="kmap__side" aria-live="polite" aria-atomic="true">
+              <div class="kmap__head">
+                <span class="legend-title">Shortcut owners</span>
+                <p class="kmap__t" id="kmap-title">⌘ + key</p>
+                <p id="kmap-sub">Click a key to see its apps</p>
+              </div>
+              <ul class="kmap__list" id="kmap-list"></ul>
+            </div>
+          </div>
+
+          <noscript
+            ><p>
+              Enable JavaScript to try the keyboard map, or <a href="#tour">watch the tour</a>.
+            </p></noscript
+          >
+        </div>
+      </section>
+      <section class="tour wrap section" id="tour" aria-labelledby="tour-h">
+        <div class="section-intro">
+          <h2 id="tour-h">See it <em>in action.</em></h2>
+          <p>Watch Keyclash find a clash, suggest a free shortcut, and open Peek in Safari.</p>
+        </div>
+        <div class="tour-grid">
+          <div>
+            <video
+              controls
+              playsinline
+              preload="none"
+              width="1920"
+              height="1080"
+              poster="media/keyclash-tour.jpg"
+              aria-label="Keyclash feature tour, 65 seconds"
+            >
+              <source src="media/keyclash-tour.mp4" type="video/mp4" />
+              <a href="media/keyclash-tour.mp4">Download the Keyclash tour</a>
+            </video>
+            <details>
+              <summary>Read the tour</summary>
+              <p>
+                Rectangle and Roma both claim Control–Option–N. Keyclash flags the clash and suggests
+                Control–Option–H as a free alternative on this Mac. You choose which app to change.
+              </p>
+              <p>
+                Hold Shift and Command to see the keyboard map. Look up Shift–Command–T and you’ll see that
+                Calendar goes to a date and Finder hides the tab bar. These shortcuts can share the keys
+                because only the app in front responds.
+              </p>
+              <p>
+                In Safari, press Command twice to open Peek. Type “new tab” to narrow 71 shortcuts to two.
+                Select one and press Return to run it. Optional usage counts show your most-used combinations
+                and stay on your Mac.
+              </p>
+            </details>
+          </div>
+          <div>
+            <h3>Your first shortcut</h3>
+            <ol>
+              <li>
+                <a href="https://github.com/hitpoint-hi/keyclash/releases/latest/download/Keyclash.zip"
+                  >Download Keyclash</a
+                >
+                and unzip it. Move the app to Applications and open it.
+              </li>
+              <li>
+                To use Peek, click <strong>Ask macOS for permission</strong>. Enable Keyclash in System
+                Settings under <strong>Privacy &amp; Security → Accessibility</strong>.
+              </li>
+              <li>
+                Open Safari and press Command twice. Type <strong>new tab</strong> in Peek and press Return to
+                run the selected shortcut.
+              </li>
+            </ol>
           </div>
         </div>
-      </div>
-    </div></div>
-  </section>
-
-  <section class="section" id="tour" aria-labelledby="tour-h">
-    <div class="wrap">
-      <h2 id="tour-h">See Keyclash in action</h2>
-      <div class="tour-layout">
-        <div>
-          <video controls playsinline preload="none" width="1920" height="1080"
-                 poster="media/keyclash-tour.jpg" aria-label="Keyclash feature tour, 65 seconds">
-            <source src="media/keyclash-tour.mp4" type="video/mp4">
-            <a href="media/keyclash-tour.mp4">Download the Keyclash tour</a>
-          </video>
+      </section>
+      <section class="peek-section" id="peek">
+        <div class="peek-grid wrap">
+          <div>
+            <h2>Take a <em>Peek.</em></h2>
+            <p>
+              Press Command twice to open the shortcuts for your frontmost app. Type an action, then press
+              Return to run it.
+            </p>
+            <p class="aside">Hold the second press for a quick look. Release to dismiss.</p>
+          </div>
+          <div
+            class="peek-window"
+            role="img"
+            aria-label="Example Safari Peek panel. Searching for new tab shows New Tab and New Tab at End."
+          >
+            <div class="window-bar"><i></i><i></i><i></i><b>Peek</b></div>
+            <div class="peek-body">
+              <strong>Safari</strong><span>File menu</span>
+              <div class="query">new tab<span aria-hidden="true"></span></div>
+              <div class="result active">
+                New Tab <b><kbd>⌘</kbd> <kbd>T</kbd></b>
+              </div>
+              <div class="result">
+                New Tab at End <b><kbd>⌥</kbd> <kbd>⌘</kbd> <kbd>T</kbd></b>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="features" class="split wrap section">
+        <h2>Beyond the map.</h2>
+        <dl class="rows">
+          <dt>Look up a combination</dt>
+          <dd>Type or record a shortcut to see its owners, other modifiers, and nearby free keys.</dd>
+          <dt>Export your shortcuts</dt>
+          <dd>Sort the shortcut table and save a copy as Markdown or CSV.</dd>
+          <dt>Count the keys you use</dt>
+          <dd>Turn on optional daily counts to see which combinations you press in each app.</dd>
+          <dt>Review remaps with an agent</dt>
+          <dd>
+            Connect an MCP client to propose changes. Review each diff before applying it, and undo it when
+            needed.
+          </dd>
+        </dl>
+      </section>
+      <section id="privacy" class="privacy">
+        <div class="wrap split">
+          <h2>Your Mac.<br />Your data.</h2>
+          <div>
+            <p>
+              Keyclash has no network code. Shortcut scans, counts, and backups stay in a folder you control.
+            </p>
+            <code>~/Library/Application Support/Keyclash/</code>
+            <p class="aside">
+              Use counting starts off. When enabled, it records combinations with a modifier, the app, and the
+              day. Your typed text stays out of the log.
+            </p>
+            <p class="aside">If you connect an external agent, its client receives the tool results.</p>
+          </div>
+        </div>
+      </section>
+      <section id="faq" class="section wrap split">
+        <h2>Questions</h2>
+        <div class="questions">
           <details>
-            <summary>Read the tour</summary>
-            <p>Rectangle and Roma both claim Control–Option–N. Keyclash flags the clash and suggests Control–Option–H as a free alternative on this Mac. You choose which app to change.</p>
-            <p>Hold Shift and Command to see the keyboard map. Look up Shift–Command–T and you’ll see that Calendar goes to a date and Finder hides the tab bar. These shortcuts can share the keys because only the app in front responds.</p>
-            <p>In Safari, press Command twice to open Peek. Type “new tab” to narrow 71 shortcuts to two. Select one and press Return to run it. Optional usage counts show your most-used combinations and stay on your Mac.</p>
+            <summary>Which Macs can run Keyclash?</summary>
+            <p>
+              The universal download supports Apple Silicon and Intel on macOS 11 or later. Testing so far
+              covers one Apple Silicon Mac.
+            </p>
+          </details>
+          <details>
+            <summary>How do I install it?</summary>
+            <p>
+              Download and unzip Keyclash, move it to Applications, and open it. The release is signed with an
+              Apple Developer ID and notarized by Apple.
+            </p>
+          </details>
+          <details>
+            <summary>Why does it ask for Accessibility?</summary>
+            <p>
+              Keyclash needs this permission to read live menus and detect the double Command press for Peek.
+              File-based shortcuts work without it. Full Disk Access is optional for some sandboxed apps.
+            </p>
+          </details>
+          <details>
+            <summary>Which shortcut sources can it read?</summary>
+            <p>
+              Keyclash reads macOS settings, app menus, and tool configs including AeroSpace, OmniWM, skhd,
+              Karabiner-Elements, and Wispr Flow.
+            </p>
+          </details>
+          <details>
+            <summary>What does it cost?</summary>
+            <p>Keyclash is free and open source under the MIT license.</p>
           </details>
         </div>
-        <div>
-          <h3>Try it on your Mac</h3>
-          <ol>
-            <li><a href="https://github.com/hitpoint-hi/keyclash/releases/latest/download/Keyclash.zip">Download Keyclash</a> and unzip it. Move the app to Applications and open it.</li>
-            <li>To use Peek, click <strong>Ask macOS for permission</strong>. Enable Keyclash in System Settings under <strong>Privacy &amp; Security → Accessibility</strong>.</li>
-            <li>Open Safari and press Command twice. Type <strong>new tab</strong> in Peek and press Return to run the selected shortcut.</li>
-          </ol>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="map" aria-labelledby="map-h">
-    <div class="wrap">
-      <div class="grid">
-        <h2 id="map-h" class="span-5">One key, every app that uses it</h2>
-        <p class="span-6 start-7 t-lead">Hold or click the modifier keys. Each key turns free, used, shared, blocked or red for a clash. Click a key to see who owns it.</p>
-      </div>
-      <div class="ui kc kmap fill" data-ui="" id="kmap" data-ui-pause-host>
-        <div class="kmap__main">
-          <div class="kmap__mods" role="group" aria-label="Modifier keys">
-            <button type="button" data-mod="ctrl" aria-pressed="false"><i></i>⌃ control</button>
-            <button type="button" data-mod="opt" aria-pressed="false"><i></i>⌥ option</button>
-            <button type="button" data-mod="shift" aria-pressed="false"><i></i>⇧ shift</button>
-            <button type="button" data-mod="cmd" aria-pressed="true"><i></i>⌘ command</button>
+      </section>
+      <section class="source-strip" id="source">
+        <div class="wrap split">
+          <div>
+            <h2>Build from <em>source.</em></h2>
+            <p>Keyclash runs on Rust and egui.</p>
+            <a href="https://github.com/hitpoint-hi/keyclash">Explore the repository ↗</a>
           </div>
-          <ul class="kmap__legend">
-            <li><i style="background:#272b34"></i>Free</li>
-            <li><i style="background:#1d3550;border-color:#2f5b8a"></i>Inside one app</li>
-            <li><i style="background:#343a46"></i>Several apps, each its own</li>
-            <li><i style="background:#4a3218;border-color:#ff9f4a"></i>A system-wide tool takes it</li>
-            <li><i style="background:#4d1d22;border-color:#ff5c61"></i>Clash</li>
-          </ul>
-          <div class="kb" id="kb"></div>
+          <pre><code>git clone https://github.com/hitpoint-hi/keyclash
+cd keyclash
+cargo run</code></pre>
         </div>
-        <div class="kmap__side">
-          <div class="kmap__head"><p class="kmap__t" id="kmap-title">⌘ + key</p><p id="kmap-sub">Click a key to see its apps</p></div>
-          <ul class="kmap__list" id="kmap-list" aria-live="polite"></ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="peek" aria-labelledby="peek-h">
-    <div class="wrap">
-      <div class="grid fill">
-        <div class="span-5">
-          <h2 id="peek-h">Peek shows the shortcuts of the app in front</h2>
-          <p class="t-lead" style="margin-top:var(--s-5)">Press Command twice in any app. Type to filter, then press Return to run the shortcut. Hold the second press to see Peek only while you hold.</p>
-          <ul class="facts">
-            <li>Shift, Option or Control lights up the shortcuts that use them</li>
-            <li>A row marks a key that another tool takes system-wide</li>
-            <li>You can change the trigger or turn Peek off</li>
-          </ul>
-        </div>
-        <div class="frame frame--split span-6 start-7" role="img" aria-label="Peek over Safari, filtered by the letters ta, with New Tab selected">
-          <div class="stage"><div class="peek ui kc" data-ui="" aria-hidden="true">
-            <div class="peek__head"><b>Safari</b><span>71 shortcuts · menus read live</span></div>
-            <div class="peek__filter">ta</div>
-            <div class="peek__cols">
-              <div>
-                <p class="peek__g">File</p>
-                <div class="peek__row on">New Tab <span class="keys"><kbd class="m-cmd">⌘</kbd><kbd>T</kbd></span></div>
-                <div class="peek__row">New Tab at End <span class="keys"><kbd class="m-opt">⌥</kbd><kbd class="m-cmd">⌘</kbd><kbd>T</kbd></span></div>
-                <div class="peek__row">Close Tab <span class="keys"><kbd class="m-cmd">⌘</kbd><kbd>W</kbd></span></div>
-                <div class="peek__row">Close Other Tabs <span class="keys"><kbd class="m-opt">⌥</kbd><kbd class="m-cmd">⌘</kbd><kbd>W</kbd></span></div>
-                <p class="peek__g">View</p>
-                <div class="peek__row">Show Tab Overview <span class="keys"><kbd class="m-shift">⇧</kbd><kbd class="m-cmd">⌘</kbd><kbd>\</kbd></span></div>
-                <div class="peek__row">Show Status Bar <span class="keys"><kbd class="m-cmd">⌘</kbd><kbd>/</kbd></span></div>
-              </div>
-              <div>
-                <p class="peek__g">Window</p>
-                <div class="peek__row">Show Next Tab <span class="keys"><kbd class="m-ctrl">⌃</kbd><kbd>⇥</kbd></span></div>
-                <div class="peek__row">Show Previous Tab <span class="keys"><kbd class="m-ctrl">⌃</kbd><kbd class="m-shift">⇧</kbd><kbd>⇥</kbd></span></div>
-                <div class="peek__row">Go To Next Tab Group <span class="keys"><kbd class="m-shift">⇧</kbd><kbd class="m-cmd">⌘</kbd><kbd>↓</kbd></span></div>
-                <p class="peek__g">Edit</p>
-                <div class="peek__row">AutoFill Form <span class="warn">⚠ tool</span><span class="keys"><kbd class="m-shift">⇧</kbd><kbd class="m-cmd">⌘</kbd><kbd>A</kbd></span></div>
-                <div class="peek__row">Paste and Match Style <span class="keys"><kbd class="m-opt">⌥</kbd><kbd class="m-shift">⇧</kbd><kbd class="m-cmd">⌘</kbd><kbd>V</kbd></span></div>
-              </div>
-            </div>
-          </div></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section g2" id="features" aria-labelledby="features-h">
-    <div class="wrap">
-      <div class="group">
-      <div class="section-head">
-        <h2 id="features-h">Four more ways to read your keys. <span class="muted">Each one is a tab in the app.</span></h2>
-      </div>
-      <div class="grid">
-        <article class="card card--row span-6">
-          <h3>Looks up any key combination</h3>
-          <p>Type or record keys to see each app that uses them, the same key with other modifiers, and free keys nearby.</p>
-          <div class="panel panel--flush">
-            <div class="ui kc kc--card" data-ui="" aria-hidden="true">
-              <div class="kc-look">
-                <div class="kc-look__q"><span class="keys"><kbd class="m-shift">⇧</kbd><kbd class="m-cmd">⌘</kbd><kbd>T</kbd></span></div>
-                <div class="kc-look__v"><b>Used by 3 apps</b>, each in its own window</div>
-              </div>
-              <div class="kc-rows">
-                <div><span>App</span><span>Action</span><span>Works</span></div>
-                <div><span>Safari</span><span>Reopen Last Tab</span><em>In the app</em></div>
-                <div><span>Finder</span><span>Show Tab Bar</span><em>In the app</em></div>
-                <div><span>Terminal</span><span>New Tab with Profile</span><em>In the app</em></div>
-              </div>
-            </div>
-          </div>
-        </article>
-        <article class="card card--row span-6">
-          <h3>Exports every shortcut as CSV</h3>
-          <p>One table of every shortcut, sorted by any column, saved as Markdown or CSV in your Downloads folder.</p>
-          <div class="panel panel--flush">
-            <div class="ui kc kc--card" data-ui="" aria-hidden="true">
-              <div class="kc-rows">
-                <div><span>Keys</span><span>Action</span><span>App</span></div>
-                <div><span class="keys"><kbd class="m-opt">⌥</kbd><kbd class="m-cmd">⌘</kbd><kbd>L</kbd></span><span>Show Downloads</span><em>Safari</em></div>
-                <div><span class="keys"><kbd class="m-shift">⇧</kbd><kbd class="m-cmd">⌘</kbd><kbd>G</kbd></span><span>Go to Folder</span><em>Finder</em></div>
-                <div><span class="keys"><kbd class="m-cmd">⌘</kbd><kbd>K</kbd></span><span>Clear to Start</span><em>Terminal</em></div>
-                <div><span class="keys"><kbd class="m-ctrl">⌃</kbd><kbd class="m-cmd">⌘</kbd><kbd>F</kbd></span><span>Enter Full Screen</span><em>Every app</em></div>
-                <div><span class="keys"><kbd class="m-opt">⌥</kbd><kbd class="m-cmd">⌘</kbd><kbd>Space</kbd></span><span>Finder search window</span><em>Finder</em></div>
-              </div>
-            </div>
-          </div>
-        </article>
-      </div>
-      </div>
-      <div class="grid">
-        <article class="card card--row span-6">
-          <h3>Counts the shortcuts you press</h3>
-          <p>Off until you turn it on. It counts presses with ⌘, ⌃, ⌥ or fn per app and day, and never what you type.</p>
-          <div class="panel panel--flush">
-            <div class="ui kc kc--card" data-ui="" aria-hidden="true">
-              <div class="kc-use">
-                <div><span class="keys"><kbd class="m-cmd">⌘</kbd><kbd>C</kbd></span><i style="--w:100%"></i><span>214</span></div>
-                <div><span class="keys"><kbd class="m-cmd">⌘</kbd><kbd>V</kbd></span><i style="--w:88%"></i><span>187</span></div>
-                <div><span class="keys"><kbd class="m-cmd">⌘</kbd><kbd>Tab</kbd></span><i style="--w:61%"></i><span>131</span></div>
-                <div><span class="keys"><kbd class="m-cmd">⌘</kbd><kbd>W</kbd></span><i style="--w:34%"></i><span>73</span></div>
-                <div><span class="keys"><kbd class="m-shift">⇧</kbd><kbd class="m-cmd">⌘</kbd><kbd>T</kbd></span><i style="--w:19%"></i><span>41</span></div>
-                <div><span class="keys"><kbd class="m-opt">⌥</kbd><kbd class="m-cmd">⌘</kbd><kbd>H</kbd></span><i style="--w:6%"></i><span>12</span></div>
-              </div>
-            </div>
-          </div>
-        </article>
-        <article class="card card--row span-6">
-          <h3>Lets an agent propose key changes</h3>
-          <p>Run <code>keyclash --mcp</code> to connect an agent. It proposes a change as a diff; you approve it, and undo is one call.</p>
-          <div class="panel panel--flush">
-            <div class="ui kc kc--card" data-ui="" aria-hidden="true">
-              <div class="kc-term"><span class="p">propose_change: 1 file</span>
-<span class="p">conflicts after: 0</span>
-
-<span class="p">~/.skhdrc</span>
-<span class="del">- ctrl - space : open -a Terminal</span>
-<span class="add">+ ctrl + shift - space : open -a Terminal</span>
-<span class="p">Backup saved · apply_change done</span></div>
-            </div>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="section ground-surface" id="privacy" aria-labelledby="privacy-h" data-moment="iris-opens" data-moment-opts='{"from": "base"}'>
-    <div class="wrap">
-      <div class="grid fill">
-        <div class="span-5">
-          <h2 id="privacy-h">Your shortcuts stay on your Mac</h2>
-          <p class="t-lead" style="margin-top:var(--s-5)">Keyclash has no network code. Its scans, counts and backups are plain files in one folder that you can read or delete.</p>
-          <ul class="facts">
-            <li>Accessibility permission reads live app menus</li>
-            <li>The key listener passes each key on unchanged</li>
-            <li>Full Disk Access is optional, for sandboxed apps</li>
-          </ul>
-        </div>
-        <div class="span-6 start-7 kc-stack" role="img" aria-label="The Keyclash data folder in Application Support, and the setting that turns the use counter on">
-          <div class="ui kc" data-ui="" aria-hidden="true">
-            <div class="kc__bar"><svg class="kc__dots" viewBox="0 0 47 11" width="47" height="11" aria-hidden="true"><circle cx="5.5" cy="5.5" r="5.5"/><circle cx="23.5" cy="5.5" r="5.5"/><circle cx="41.5" cy="5.5" r="5.5"/></svg><b>Application Support › Keyclash</b></div>
-            <ul class="kc-files">
-              <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2h5l3 3v9H4z"/></svg><code>settings.json</code><span>Peek key and counter choice</span></li>
-              <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2h5l3 3v9H4z"/></svg><code>usage.json</code><span>Press counts per day. No typed text.</span></li>
-              <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2h5l3 3v9H4z"/></svg><code>favorites.json</code><span>Starred shortcuts</span></li>
-              <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2h5l3 3v9H4z"/></svg><code>menus.json</code><span>Menus read on earlier scans</span></li>
-              <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 2h5l3 3v9H4z"/></svg><code>hotkey.log</code><span>Short log of the key listener</span></li>
-              <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 4h4l1.5 1.5H14V13H2z"/></svg><code>agent/</code><span>Proposals and config backups</span></li>
-            </ul>
-          </div>
-          <div class="ui kc kc-set" data-ui="" aria-hidden="true">
-            <div class="kc-set__row"><div><b>Count shortcut presses</b><span>Off until you turn it on. Counts keys with a modifier, never text.</span></div><i class="kc-toggle"></i></div>
-            <div class="kc-set__row"><div><b>Peek key</b><span>Press ⌘ twice</span></div><span class="kc-chip">Change</span></div>
-            <div class="kc-set__row"><div><b>Use counts</b><span>Stored in usage.json on this Mac</span></div><span class="kc-chip">Delete counts</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="source" aria-labelledby="source-h">
-    <div class="wrap">
-      <div class="grid fill">
-        <div class="span-5">
-          <h2 id="source-h">Keyclash source code, built with Cargo</h2>
-          <p class="t-lead" style="margin-top:var(--s-5)">Keyclash is a Rust app built on egui. Clone the repository and one Cargo command opens the window.</p>
-          <ul class="facts">
-            <li>Apple Silicon and Intel, macOS 11 or later</li>
-            <li>Tested on one Mac so far. Reports from yours help.</li>
-            <li>The Mac download is signed and notarized</li>
-          </ul>
-        </div>
-        <div class="frame frame--split span-6 start-7" role="img" aria-label="A terminal: git clone of the Keyclash repository, then cargo run and cargo test">
-          <div class="stage"><div class="ui kc kc--split" data-ui="" aria-hidden="true">
-            <div class="kc__bar"><svg class="kc__dots" viewBox="0 0 47 11" width="47" height="11" aria-hidden="true"><circle cx="5.5" cy="5.5" r="5.5"/><circle cx="23.5" cy="5.5" r="5.5"/><circle cx="41.5" cy="5.5" r="5.5"/></svg><b>Terminal</b><span>keyclash</span></div>
-            <div class="term"><span class="p">$ </span>git clone https://github.com/hitpoint-hi/keyclash
-<span class="p">$ </span>cd keyclash
-<span class="p">$ </span>cargo run                <span class="c"># open the window</span>
-<span class="p">$ </span>cargo test               <span class="c"># run the unit tests</span>
-<span class="p">$ </span>cargo run -- --report    <span class="c"># print the clashes</span>
-2 clashes, 3 shortcuts blocked by a system-wide tool
-  ctrl-space       skhd, macOS input sources
-  ctrl-alt-space   AeroSpace, Wispr Flow
-<span class="p">$ </span>cargo run -- --mcp       <span class="c"># serve agent tools</span>
-<span class="p">$ </span>cargo run -- --install   <span class="c"># add it to Applications</span></div>
-          </div></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="faq" aria-labelledby="faq-h">
-    <div class="wrap">
-      <div class="grid fill">
-        <div class="span-5">
-          <h2 id="faq-h">Questions</h2>
-          <p class="t-lead muted" style="margin-top:var(--s-5)">Something wrong on your Mac? Open an issue on GitHub.</p>
-          <img class="faq__icon" src="icon-512.png" width="512" height="512" alt="The Keyclash app icon" loading="lazy">
-        </div>
-        <div class="faq span-6 start-7">
-          <div class="faq__item"><h3>Is Keyclash free?</h3><p>Yes. The source is on GitHub to fork and change.</p></div>
-          <div class="faq__item"><h3>Why does Keyclash need Accessibility?</h3><p>To read the menus of open apps and to see the double ⌘ press for Peek. Without it, you still get the shortcuts in files.</p></div>
-          <div class="faq__item"><h3>Does Keyclash record my typing?</h3><p>No. The counter is off until you turn it on, and it stores only key combinations with a modifier, per app and day.</p></div>
-          <div class="faq__item"><h3>Which tool configs does Keyclash read?</h3><p>AeroSpace, OmniWM, skhd, Karabiner-Elements and Wispr Flow, plus macOS settings and app menus.</p></div>
-          <div class="faq__item"><h3>Will macOS warn about the app?</h3><p>No. Keyclash is signed with an Apple Developer ID and notarized by Apple, so it opens like any other app.</p></div>
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer class="footer closing footer--dark ground-inverse g2m" id="contact" aria-labelledby="close-h">
-  <div class="wrap">
-    <div class="closing__cta close--word">
-      <div class="section-head--split">
-        <div><h2 id="close-h">Get the source on GitHub</h2><p class="t-lead">Star it, fork it, or open an issue with what looks wrong on your Mac.</p></div>
-        <a class="btn btn--primary" href="https://github.com/hitpoint-hi/keyclash">View on GitHub<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
-      </div>
-      <p class="close__word" aria-hidden="true">Keyclash</p>
-    </div>
-    <div class="closing__links">
-      <div class="grid">
-        <div class="span-4 stack-4">
-          <a class="nav__logo" href="#top"><img src="logo-192.png" width="28" height="28" alt="" style="border-radius:7px">Keyclash</a>
-          <p class="footer__lede">A keyboard shortcut map for the Mac.</p>
-        </div>
-        <div class="span-2 footer__col"><h3>App</h3><ul><li><a href="#tour">Watch the tour</a></li><li><a href="#map">Keyboard map</a></li><li><a href="#peek">Peek</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>More</h3><ul><li><a href="#features">Features</a></li><li><a href="#privacy">Privacy</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>Code</h3><ul><li><a href="#source">Build it</a></li><li><a href="https://github.com/hitpoint-hi/keyclash/issues">Issues</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>Help</h3><ul><li><a href="#faq">Questions</a></li></ul></div>
-      </div>
-      <div class="footer__legal">
-        <span>&copy; 2026 Keyclash · <a href="https://github.com/hitpoint-hi/keyclash/blob/main/LICENSE">MIT License</a></span>
-        <span>Product names are trademarks of their owners</span>
-      </div>
-    </div>
-  </div>
-</footer>
-
-<nav class="actionbar" aria-label="Quick actions">
-  <a class="btn btn--primary" href="https://github.com/hitpoint-hi/keyclash">View on GitHub</a>
-</nav>
-
-<script src="keymap.js"></script>
-<script type="module" src="assets/system.js"></script>
-<script type="module" src="assets/motion/motion.js"></script>
-<script type="module" src="assets/layout/layout.js"></script>
-</body>
+      </section>
+    </main>
+    <footer class="wrap">
+      <a class="brand" href="#top"><img src="logo-192.png" width="27" height="27" alt="" />Keyclash</a
+      ><a href="https://github.com/hitpoint-hi/keyclash/issues">Report an issue ↗</a
+      ><a href="https://github.com/hitpoint-hi/keyclash/blob/main/LICENSE">MIT license</a
+      ><a href="#top">Back to top ↑</a>
+    </footer>
+    <script src="keymap.js" defer></script>
+  </body>
 </html>

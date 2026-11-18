@@ -54,7 +54,7 @@
     'opt+shift+cmd': { V: ['shared', A('Most apps','Paste and Match Style')], esc: ['blocks', A('macOS','Force quit front app', SW)] },
   };
   const LABEL = { free: 'free', app: 'used inside one app', shared: 'used by several apps', blocks: 'a system-wide tool takes it', clash: 'clash' };
-  const mods = new Set(['cmd']); let sel = null;
+  const mods = new Set(['ctrl']); let sel = 'Space';
   const kb = document.getElementById('kb'), list = document.getElementById('kmap-list');
   const title = document.getElementById('kmap-title'), sub = document.getElementById('kmap-sub');
   const chips = [...document.querySelectorAll('.kmap__mods button')];
