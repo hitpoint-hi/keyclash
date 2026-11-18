@@ -74,6 +74,17 @@
 
   .hero--centred .hero__lead { color: var(--ink); }
   footer .close__word { line-height: 1.04; }
+  main > #tour { height: auto; min-height: 0; scroll-margin-top: var(--nav); }
+  #tour .tour-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr); gap: var(--s-7); align-items: start; }
+  #tour h2 { margin-bottom: var(--s-6); }
+  #tour video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 1px solid var(--line); border-radius: 14px; background: #101319; }
+  #tour details { margin-top: var(--s-3); }
+  #tour summary { width: fit-content; cursor: pointer; }
+  #tour details p { margin-top: var(--s-3); max-width: 62ch; }
+  #tour ol { padding-left: 1.4em; list-style: decimal; }
+  #tour li { margin-top: var(--s-4); padding-left: .25em; }
+  #tour li a { text-decoration: underline; text-underline-offset: .15em; }
+  @media (max-width: 799px) { #tour .tour-layout { grid-template-columns: 1fr; } }
   /* hero: the Conflicts tab */
   .hero__window { background: radial-gradient(70% 90% at 50% 0%, #2f4a6e 0%, #182232 55%, #0e1014 100%); }
   .hero__window > .ly-piece { width: min(960px, calc(100% - 2 * var(--s-6))); }
@@ -228,8 +239,8 @@
         <h1 id="hero-h">A keyboard shortcut map for your Mac</h1>
         <p class="hero__lead">Keyclash reads macOS, your app menus and tool configs, lists every keyboard shortcut it finds, and marks the ones that clash.</p>
         <div class="btn-row">
-          <a class="btn btn--primary" href="https://github.com/hitpoint-hi/keyclash">View on GitHub<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
-          <a class="btn btn--secondary" href="https://github.com/hitpoint-hi/keyclash/releases/latest/download/Keyclash.zip" download>Download for Mac</a>
+          <a class="btn btn--primary" href="https://github.com/hitpoint-hi/keyclash/releases/latest/download/Keyclash.zip" download>Download for Mac</a>
+          <a class="btn btn--secondary" href="#tour">Watch the 65-second tour</a>
         </div>
       </div>
       <div class="hero__window" role="img" aria-label="The Keyclash window on its Conflicts tab: skhd and the input-source switch both take Control-Space, and a window manager takes Option-Command-H from Hide Others">
@@ -245,6 +256,35 @@
         </div>
       </div>
     </div></div>
+  </section>
+
+  <section class="section" id="tour" aria-labelledby="tour-h">
+    <div class="wrap">
+      <h2 id="tour-h">See Keyclash in action</h2>
+      <div class="tour-layout">
+        <div>
+          <video controls playsinline preload="none" width="1920" height="1080"
+                 poster="media/keyclash-tour.jpg" aria-label="Keyclash feature tour, 65 seconds">
+            <source src="media/keyclash-tour.mp4" type="video/mp4">
+            <a href="media/keyclash-tour.mp4">Download the Keyclash tour</a>
+          </video>
+          <details>
+            <summary>Read the tour</summary>
+            <p>Rectangle and Roma both claim Control–Option–N. Keyclash flags the clash and suggests Control–Option–H as a free alternative on this Mac. You choose which app to change.</p>
+            <p>Hold Shift and Command to see the keyboard map. Look up Shift–Command–T and you’ll see that Calendar goes to a date and Finder hides the tab bar. These shortcuts can share the keys because only the app in front responds.</p>
+            <p>In Safari, press Command twice to open Peek. Type “new tab” to narrow 71 shortcuts to two. Select one and press Return to run it. Optional usage counts show your most-used combinations and stay on your Mac.</p>
+          </details>
+        </div>
+        <div>
+          <h3>Try it on your Mac</h3>
+          <ol>
+            <li><a href="https://github.com/hitpoint-hi/keyclash/releases/latest/download/Keyclash.zip">Download Keyclash</a> and unzip it. Move the app to Applications and open it.</li>
+            <li>To use Peek, click <strong>Ask macOS for permission</strong>. Enable Keyclash in System Settings under <strong>Privacy &amp; Security → Accessibility</strong>.</li>
+            <li>Open Safari and press Command twice. Type <strong>new tab</strong> in Peek and press Return to run the selected shortcut.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section class="section" id="map" aria-labelledby="map-h">
@@ -443,7 +483,7 @@
           <ul class="facts">
             <li>Apple Silicon and Intel, macOS 11 or later</li>
             <li>Tested on one Mac so far. Reports from yours help.</li>
-            <li>Not signed by Apple yet, so macOS asks you once</li>
+            <li>The Mac download is signed and notarized</li>
           </ul>
         </div>
         <div class="frame frame--split span-6 start-7" role="img" aria-label="A terminal: git clone of the Keyclash repository, then cargo run and cargo test">
@@ -500,7 +540,7 @@
           <a class="nav__logo" href="#top"><img src="logo-192.png" width="28" height="28" alt="" style="border-radius:7px">Keyclash</a>
           <p class="footer__lede">A keyboard shortcut map for the Mac.</p>
         </div>
-        <div class="span-2 footer__col"><h3>App</h3><ul><li><a href="#map">Keyboard map</a></li><li><a href="#peek">Peek</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>App</h3><ul><li><a href="#tour">Watch the tour</a></li><li><a href="#map">Keyboard map</a></li><li><a href="#peek">Peek</a></li></ul></div>
         <div class="span-2 footer__col"><h3>More</h3><ul><li><a href="#features">Features</a></li><li><a href="#privacy">Privacy</a></li></ul></div>
         <div class="span-2 footer__col"><h3>Code</h3><ul><li><a href="#source">Build it</a></li><li><a href="https://github.com/hitpoint-hi/keyclash/issues">Issues</a></li></ul></div>
         <div class="span-2 footer__col"><h3>Help</h3><ul><li><a href="#faq">Questions</a></li></ul></div>
