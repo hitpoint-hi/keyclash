@@ -10,16 +10,16 @@
   font-weight: 400 500;
   font-display: swap;
 }
-/* Palette from the app icon (assets/make_icon.swift): navy tile, blue key, red key, yellow spark. */
+/* Palette from the app icon (assets/make_icon.swift): navy tile, blue and red halves of the key, yellow light in the crack. */
 :root {
   --paper: #f4f6fa;
   --ink: #151821;
   --secondary: #4b5263;
   --rule: #d2d7e1;
-  --red: #d42f3e; /* red key #e83f4d, darkened to 4.5:1 on paper */
-  --blue: #2b74e0; /* blue key */
-  --blue-deep: #1f63d0; /* blue key, darkened for white text */
-  --spark: #ffc94a; /* spark glow */
+  --red: #d42f3e; /* red half #e83f4d, darkened to 4.5:1 on paper */
+  --blue: #2b74e0; /* blue half */
+  --blue-deep: #1f63d0; /* blue half, darkened for white text */
+  --spark: #ffc94a; /* glow around the crack */
   --night: #171b25; /* icon tile */
   --night-raised: #1f2431;
   --night-line: #3a4152;

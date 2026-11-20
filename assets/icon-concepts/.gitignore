@@ -1,0 +1,3 @@
+# Generated review files: rebuild PNGs with make_concepts.swift.
+*.png
+*.html

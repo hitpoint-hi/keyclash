@@ -1,5 +1,7 @@
-// Draws the Keyclash app icon: two keycaps that want the same key, with a spark where they meet.
+// Draws the Keyclash app icon: one ⌘ key that two shortcuts want. The key cracks down the middle,
+// blue on one side and red on the other, with light in the crack. The ⌘ stays whole on top of the crack.
 // Run: swift assets/make_icon.swift assets/icon-1024.png
+// Other icon ideas: assets/icon-concepts/make_concepts.swift. The earlier two-keycap icon is in Git history.
 import AppKit
 
 let out = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "icon-1024.png"
@@ -27,41 +29,89 @@ ctx.setFillColor(rgb(0x151821))
 ctx.fillPath()
 ctx.restoreGState()
 
+// The key, in its own coordinates: origin at the center of its face.
+let center = CGPoint(x: 512, y: 536)
+let w: CGFloat = 480, depth: CGFloat = 50, radius: CGFloat = 108, gap: CGFloat = 9
+let top = w / 2, bottom = -w / 2 - depth
+
 ctx.saveGState()
 ctx.addPath(bodyPath)
 ctx.clip()
 ctx.drawLinearGradient(grad([rgb(0x2B3145), rgb(0x0F1219)]), start: CGPoint(x: 0, y: 924), end: CGPoint(x: 0, y: 100), options: [])
-// Warm light from the point where the keys meet.
-let hit = CGPoint(x: 512, y: 606)
-ctx.drawRadialGradient(grad([rgb(0xFFC94A, 0.42), rgb(0xFF8A3D, 0.14), rgb(0xFF8A3D, 0)], [0, 0.45, 1]),
-                       startCenter: hit, startRadius: 0, endCenter: hit, endRadius: 430, options: [])
-ctx.restoreGState()
+// Warm light from the crack, in the spark yellow that src/theme.rs and the site also use.
+let lightCenter = CGPoint(x: 512, y: center.y + 30)
+ctx.drawRadialGradient(grad([rgb(0xFFC94A, 0.32), rgb(0xFF8A3D, 0.11), rgb(0xFF8A3D, 0)], [0, 0.45, 1]),
+                       startCenter: lightCenter, startRadius: 0, endCenter: lightCenter, endRadius: 440, options: [])
 // A thin light edge at the top of the body.
-ctx.saveGState()
-ctx.addPath(bodyPath)
-ctx.clip()
 ctx.addPath(rounded(body.insetBy(dx: 2, dy: 2), 184))
 ctx.setStrokeColor(rgb(0xFFFFFF, 0.10))
 ctx.setLineWidth(4)
 ctx.strokePath()
 ctx.restoreGState()
 
-/// One keycap: a darker side below, a lit face, and the key symbol.
-func keycap(center: CGPoint, angle: CGFloat, face: (UInt32, UInt32), side: UInt32, glyph: String) {
-    let w: CGFloat = 318, depth: CGFloat = 36, radius: CGFloat = 70
+ctx.saveGState()
+ctx.translateBy(x: center.x, y: center.y)
+
+// The crack runs from the top of the face to the bottom of the side.
+let offsets: [CGFloat] = [0, 24, -16, 28, -22, 14, -24, 6]
+let crack = offsets.enumerated().map { i, x in
+    CGPoint(x: x, y: top + (bottom - top) * CGFloat(i) / CGFloat(offsets.count - 1))
+}
+
+// One shadow for the whole key, painted outside the key shape only.
+// The halves cover the rest, and the gap between them stays clear for the light.
+let keyShape = rounded(CGRect(x: -w / 2 - gap, y: bottom, width: w + 2 * gap, height: w), radius)
+ctx.saveGState()
+ctx.addRect(CGRect(x: -2000, y: -2000, width: 4000, height: 4000))
+ctx.addPath(keyShape)
+ctx.clip(using: .evenOdd)
+ctx.setShadow(offset: CGSize(width: 0, height: -depth * 0.45), blur: depth, color: rgb(0x000000, 0.55))
+ctx.addPath(keyShape)
+ctx.setFillColor(rgb(0x000000))
+ctx.fillPath()
+ctx.restoreGState()
+
+// The light in the crack: the space between the two halves.
+let leftEdge = crack.map { CGPoint(x: $0.x - gap, y: $0.y) }
+let rightEdge = crack.map { CGPoint(x: $0.x + gap, y: $0.y) }
+let wedge = CGMutablePath()
+wedge.addLines(between: leftEdge + rightEdge.reversed())
+wedge.closeSubpath()
+ctx.saveGState()
+ctx.setShadow(offset: .zero, blur: 34, color: rgb(0xFF9A2E, 1))
+ctx.addPath(wedge)
+ctx.setFillColor(rgb(0xFFC235))
+ctx.fillPath()
+ctx.restoreGState()
+ctx.saveGState()
+let core = CGMutablePath()
+core.addLines(between: crack)
+ctx.addPath(core)
+ctx.setStrokeColor(rgb(0xFFF6D6))
+ctx.setLineWidth(7)
+ctx.setLineJoin(.round)
+ctx.strokePath()
+ctx.restoreGState()
+
+// The two halves: a darker side below and a lit face, each moved out by `gap`.
+let faceRect = CGRect(x: -w / 2, y: -w / 2, width: w, height: w)
+for (sign, face, side) in [(CGFloat(-1), (UInt32(0x6DB4FF), UInt32(0x2B74E0)), UInt32(0x174A9C)),
+                           (CGFloat(1), (UInt32(0xFF8C7A), UInt32(0xE83F4D)), UInt32(0x9C1F2E))] {
+    let half = CGMutablePath()
+    half.move(to: CGPoint(x: sign * 2000, y: top + 2000))
+    half.addLine(to: CGPoint(x: crack[0].x, y: top + 2000))
+    // addLines(between:) would start a new subpath, so add each point to this one.
+    for point in crack { half.addLine(to: point) }
+    half.addLine(to: CGPoint(x: crack[crack.count - 1].x, y: bottom - 2000))
+    half.addLine(to: CGPoint(x: sign * 2000, y: bottom - 2000))
+    half.closeSubpath()
     ctx.saveGState()
-    ctx.translateBy(x: center.x, y: center.y)
-    ctx.rotate(by: angle)
-    let faceRect = CGRect(x: -w / 2, y: -w / 2, width: w, height: w)
-    // The side of the key, with the shadow of the whole key.
-    ctx.saveGState()
-    ctx.setShadow(offset: CGSize(width: 0, height: -16), blur: 34, color: rgb(0x000000, 0.5))
+    ctx.translateBy(x: sign * gap, y: 0)
+    ctx.addPath(half)
+    ctx.clip()
     ctx.addPath(rounded(faceRect.offsetBy(dx: 0, dy: -depth), radius))
     ctx.setFillColor(rgb(side))
     ctx.fillPath()
-    ctx.restoreGState()
-    // The face.
-    ctx.saveGState()
     ctx.addPath(rounded(faceRect, radius))
     ctx.clip()
     ctx.drawLinearGradient(grad([rgb(face.0), rgb(face.1)]), start: CGPoint(x: 0, y: w / 2), end: CGPoint(x: 0, y: -w / 2), options: [])
@@ -70,63 +120,17 @@ func keycap(center: CGPoint, angle: CGFloat, face: (UInt32, UInt32), side: UInt3
     ctx.setLineWidth(6)
     ctx.strokePath()
     ctx.restoreGState()
-    // The symbol.
-    let font = NSFont.systemFont(ofSize: 188, weight: .semibold)
-    let text = NSAttributedString(string: glyph, attributes: [.font: font, .foregroundColor: NSColor.white])
-    let line = CTLineCreateWithAttributedString(text)
-    let b = CTLineGetBoundsWithOptions(line, .useGlyphPathBounds)
-    ctx.setShadow(offset: CGSize(width: 0, height: -5), blur: 8, color: rgb(0x000000, 0.22))
-    ctx.textPosition = CGPoint(x: -b.midX, y: -b.midY)
-    CTLineDraw(line, ctx)
-    ctx.restoreGState()
 }
 
-// The two keys lean in and meet at their top corners.
-let lean: CGFloat = 0.21
-keycap(center: CGPoint(x: 344, y: 432), angle: -lean, face: (0x6DB4FF, 0x2B74E0), side: 0x174A9C, glyph: "⌘")
-keycap(center: CGPoint(x: 680, y: 432), angle: lean, face: (0xFF8C7A, 0xE83F4D), side: 0x9C1F2E, glyph: "⌘")
-
-/// A jagged burst, as in a comic: longer points up, shorter points down where the keys are.
-func burst(_ c: CGPoint, size: CGFloat) -> CGPath {
-    let wobble: [CGFloat] = [1.0, 0.84, 1.06, 0.88, 0.98, 0.82, 1.04, 0.9, 1.0, 0.86, 1.02, 0.8]
-    let p = CGMutablePath()
-    let n = wobble.count
-    for i in 0..<(n * 2) {
-        let a = CGFloat(i) * .pi / CGFloat(n) + .pi / 2
-        // Points that go down are shorter.
-        let up = 0.72 + 0.28 * (sin(a) + 1) / 2
-        let r = i % 2 == 0 ? size * wobble[i / 2] * up : size * 0.5 * up
-        let pt = CGPoint(x: c.x + cos(a) * r, y: c.y + sin(a) * r)
-        if i == 0 { p.move(to: pt) } else { p.addLine(to: pt) }
-    }
-    p.closeSubpath()
-    return p
-}
-
-// The clash.
-let shape = burst(hit, size: 150)
-ctx.saveGState()
-ctx.setShadow(offset: .zero, blur: 44, color: rgb(0xFF9A2E, 0.95))
-ctx.addPath(shape)
-ctx.setFillColor(rgb(0xFFC235))
-ctx.fillPath()
+// The ⌘, whole, on top of the crack. A soft shadow lifts it off the light.
+let font = NSFont.systemFont(ofSize: 250, weight: .semibold)
+let text = NSAttributedString(string: "⌘", attributes: [.font: font, .foregroundColor: NSColor.white])
+let line = CTLineCreateWithAttributedString(text)
+let b = CTLineGetBoundsWithOptions(line, .useGlyphPathBounds)
+ctx.setShadow(offset: CGSize(width: 0, height: -6), blur: 14, color: rgb(0x000000, 0.40))
+ctx.textPosition = CGPoint(x: -b.midX, y: -b.midY)
+CTLineDraw(line, ctx)
 ctx.restoreGState()
-ctx.saveGState()
-ctx.addPath(shape)
-ctx.clip()
-ctx.drawRadialGradient(grad([rgb(0xFFFFFF), rgb(0xFFF3B8), rgb(0xFFCB3D), rgb(0xFF9A2E)], [0, 0.34, 0.74, 1]),
-                       startCenter: hit, startRadius: 0, endCenter: hit, endRadius: 158, options: [.drawsAfterEndLocation])
-ctx.restoreGState()
-// Short lines that fly up from the clash.
-ctx.setStrokeColor(rgb(0xFFE08A))
-ctx.setLineCap(.round)
-for (deg, from, to, width) in [(34.0, 186.0, 222.0, 13.0), (62.0, 190.0, 232.0, 15.0), (90.0, 192.0, 228.0, 15.0), (118.0, 190.0, 232.0, 15.0), (146.0, 186.0, 222.0, 13.0)] {
-    let a = CGFloat(deg) * .pi / 180
-    ctx.setLineWidth(CGFloat(width))
-    ctx.move(to: CGPoint(x: hit.x + cos(a) * CGFloat(from), y: hit.y + sin(a) * CGFloat(from)))
-    ctx.addLine(to: CGPoint(x: hit.x + cos(a) * CGFloat(to), y: hit.y + sin(a) * CGFloat(to)))
-    ctx.strokePath()
-}
 
 let image = ctx.makeImage()!
 let rep = NSBitmapImageRep(cgImage: image)
