@@ -49,34 +49,42 @@ const fn rgb(hex: u32) -> Color32 {
     Color32::from_rgb((hex >> 16) as u8, (hex >> 8) as u8, hex as u8)
 }
 
+/// The dark theme uses the dark sections of keyclash.app, which come from the app icon
+/// (`assets/make_icon.swift`): the navy tile, the blue and red keys, and the yellow spark.
 pub static DARK: Theme = Theme {
     dark: true,
-    bg: rgb(0x0E1014),
-    surface: rgb(0x15171C),
-    card: rgb(0x181B21),
-    raised: rgb(0x22262E),
-    field: rgb(0x0B0C10),
-    line: rgb(0x272B34),
-    line_strong: rgb(0x3A3F4C),
+    // Navy surfaces from the icon tile (#0F1219 to #2B3145), darkest at the back.
+    bg: rgb(0x0F1219),
+    surface: rgb(0x151821),
+    card: rgb(0x171B25),
+    raised: rgb(0x1F2431),
+    field: rgb(0x0B0D13),
+    line: rgb(0x262B38),
+    line_strong: rgb(0x3A4152),
     text: rgb(0xEEF0F4),
     text2: rgb(0xC3C8D2),
     muted: rgb(0x8E95A3),
-    faint: rgb(0x5F6674),
-    accent: rgb(0x5AA7FF),
+    faint: rgb(0x626A7D),
+    // The icon's blue key, a shade between its two stops (#6DB4FF and #2B74E0).
+    // Light enough for 4.5:1 on its own badge tint and 3:1 for key outlines on cards.
+    accent: rgb(0x5CA3FA),
     on_accent: rgb(0x08111F),
-    keycap: rgb(0x272B34),
-    keycap_line: rgb(0x3D4350),
-    keycap_edge: rgb(0x07080A),
+    keycap: rgb(0x262B38),
+    keycap_line: rgb(0x4F576A),
+    keycap_edge: rgb(0x07090E),
     cmd: rgb(0x4CC2FF),
-    opt: rgb(0xF5C542),
+    // The icon's spark yellow.
+    opt: rgb(0xFFC94A),
     shift: rgb(0x4ADE80),
     ctrl: rgb(0xFF7AC8),
     fnk: rgb(0xC58AF9),
     good: rgb(0x4ADE80),
-    warn: rgb(0xF5C542),
-    star: rgb(0xF5C542),
+    warn: rgb(0xFFC94A),
+    star: rgb(0xFFC94A),
+    // A shade within the icon's red-key gradient (#FF8C7A to #E83F4D), light enough for 4.5:1 on its badge tint.
     clash: rgb(0xFF5C61),
-    blocks: rgb(0xFF9F4A),
+    // The icon's spark orange.
+    blocks: rgb(0xFF9A2E),
     same: rgb(0xEDC94A),
     inside: rgb(0xA896FF),
     shared: rgb(0x8E95A3),
@@ -618,6 +626,9 @@ mod tests {
                 assert!(c >= 4.5, "{k:?} badge (dark={}) has contrast {c:.2}", t.dark);
             }
             assert!(contrast(t.accent, t.card) >= 4.5, "accent on a card (dark={})", t.dark);
+            // The "System-wide" tag is a pill in the accent color.
+            let c = contrast(t.accent, t.tint(t.accent, 0.14));
+            assert!(c >= 4.5, "System-wide badge (dark={}) has contrast {c:.2}", t.dark);
             // Red means a clash. The Control symbol must not look red, or a ⌃ row reads as a clash.
             let hue_gap = |a: Color32, b: Color32| (a.r() as i32 - b.r() as i32).abs() + (a.g() as i32 - b.g() as i32).abs() + (a.b() as i32 - b.b() as i32).abs();
             assert!(hue_gap(t.ctrl, t.clash) >= 90, "ctrl and clash colors are too close (dark={})", t.dark);

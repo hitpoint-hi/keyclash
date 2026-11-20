@@ -31,60 +31,60 @@
       "dark-background": {
         "role": "neutral",
         "displayName": "Dark Background",
-        "canonical": "#0E1014",
+        "canonical": "#0F1219",
         "tonalRamp": [
-          "#090B0F",
-          "#222428",
-          "#3D4045",
-          "#5E6066",
-          "#808389",
-          "#A5A8AD",
-          "#C8CAD0",
-          "#EDEEF0"
+          "#0A0B0E",
+          "#222429",
+          "#3C4047",
+          "#5C6069",
+          "#7F838C",
+          "#A4A8AF",
+          "#C8CACF",
+          "#EDEEEF"
         ]
       },
       "dark-surface": {
         "role": "neutral",
         "displayName": "Dark Surface",
-        "canonical": "#15171C",
+        "canonical": "#151821",
         "tonalRamp": [
           "#0A0B0F",
-          "#222429",
-          "#3D4045",
-          "#5E6067",
-          "#80838A",
-          "#A5A8AE",
+          "#21242B",
+          "#3C3F49",
+          "#5C606B",
+          "#7F838E",
+          "#A4A7B1",
           "#C8CAD0",
-          "#EEEEF0"
+          "#EDEEF0"
         ]
       },
       "dark-card": {
         "role": "neutral",
         "displayName": "Dark Card",
-        "canonical": "#181B21",
+        "canonical": "#171B25",
         "tonalRamp": [
           "#090B0F",
-          "#21242A",
-          "#3C4047",
-          "#5D6068",
-          "#7F838B",
-          "#A4A8B0",
-          "#C7CBD1",
+          "#21242B",
+          "#3B404A",
+          "#5B606C",
+          "#7E838F",
+          "#A3A8B2",
+          "#C8CAD1",
           "#EDEEF0"
         ]
       },
       "dark-raised": {
         "role": "neutral",
         "displayName": "Dark Raised",
-        "canonical": "#22262E",
+        "canonical": "#1F2431",
         "tonalRamp": [
-          "#090B0F",
-          "#20242C",
-          "#3B4048",
-          "#5C616A",
-          "#7E838D",
-          "#A3A8B2",
-          "#C7CBD1",
+          "#090B10",
+          "#20242D",
+          "#3A404C",
+          "#5A606F",
+          "#7D8392",
+          "#A2A8B5",
+          "#C7CAD3",
           "#EDEEF1"
         ]
       },
@@ -136,16 +136,16 @@
       "dark-accent": {
         "role": "primary",
         "displayName": "Dark Accent",
-        "canonical": "#5AA7FF",
+        "canonical": "#5CA3FA",
         "tonalRamp": [
-          "#00062E",
-          "#001C65",
-          "#003C8B",
-          "#0560B2",
-          "#3785DA",
-          "#61ABFF",
-          "#9FCEFF",
-          "#E1F0FF"
+          "#000B1F",
+          "#00234B",
+          "#003E7D",
+          "#1460B1",
+          "#4285D5",
+          "#75ABEE",
+          "#ACCEF8",
+          "#E5EFFC"
         ]
       },
       "dark-clash": {
@@ -166,16 +166,16 @@
       "dark-blocked": {
         "role": "secondary",
         "displayName": "Dark Blocked",
-        "canonical": "#FF9F4A",
+        "canonical": "#FF9A2E",
         "tonalRamp": [
-          "#270000",
-          "#520000",
-          "#751E00",
-          "#9B4400",
-          "#C36800",
-          "#EC8D35",
-          "#FFB87B",
-          "#FFE9D6"
+          "#160700",
+          "#381C00",
+          "#5F3301",
+          "#8D4F00",
+          "#BD6C03",
+          "#E1944B",
+          "#F1BF96",
+          "#FAEBDF"
         ]
       },
       "light-background": {
@@ -376,7 +376,7 @@
       "kind": "button",
       "description": "Standard native action button.",
       "html": "<button class=\"ds-button\">Scan again</button>",
-      "css": ".ds-button{background:#22262E;color:#C3C8D2;border:1px solid #272B34;border-radius:7px;padding:5px 11px;font:13.5px -apple-system,sans-serif;cursor:pointer}.ds-button:hover{background:#30343C;color:#EEF0F4;border-color:#3A3F4C}.ds-button:active{background:#3F424A;color:#EEF0F4}.ds-button:focus-visible{outline:2px solid #5AA7FF;outline-offset:-2px}",
+      "css": ".ds-button{background:#1F2431;color:#C3C8D2;border:1px solid #262B38;border-radius:7px;padding:5px 11px;font:13.5px -apple-system,sans-serif;cursor:pointer}.ds-button:hover{background:#2D323F;color:#EEF0F4;border-color:#3A4152}.ds-button:active{background:#3C414C;color:#EEF0F4}.ds-button:focus-visible{outline:2px solid #5CA3FA;outline-offset:-2px}",
       "refersTo": "button-dark"
     },
     {
@@ -384,28 +384,28 @@
       "kind": "input",
       "description": "Input for key names or a recorded combination.",
       "html": "<input class=\"ds-input\" aria-label=\"Look up keys\" value=\"cmd shift t\">",
-      "css": ".ds-input{background:#0B0C10;color:#EEF0F4;border:1px solid #3A3F4C;border-radius:7px;padding:7px 10px;font:17px -apple-system,sans-serif}.ds-input:focus-visible{outline:2px solid #5AA7FF;outline-offset:2px}"
+      "css": ".ds-input{background:#0B0D13;color:#EEF0F4;border:1px solid #3A4152;border-radius:7px;padding:7px 10px;font:17px -apple-system,sans-serif}.ds-input:focus-visible{outline:2px solid #5CA3FA;outline-offset:2px}"
     },
     {
       "name": "Navigation",
       "kind": "nav",
       "description": "Text tabs with an underline and separate keyboard focus.",
       "html": "<nav class=\"ds-nav\" role=\"tablist\" aria-label=\"Main views\"><button role=\"tab\" aria-selected=\"true\">Look up keys</button><button role=\"tab\" aria-selected=\"false\">Keyboard map</button></nav>",
-      "css": ".ds-nav{display:flex;gap:20px;background:#15171C}.ds-nav button{background:transparent;color:#8E95A3;border:0;border-bottom:2.5px solid transparent;height:34px;padding:0 3px;font:13.5px -apple-system,sans-serif}.ds-nav button[aria-selected=true]{color:#EEF0F4;border-bottom-color:#5AA7FF}.ds-nav button:hover{color:#C3C8D2}.ds-nav button:focus-visible{outline:2px solid #5AA7FF;outline-offset:-2px}"
+      "css": ".ds-nav{display:flex;gap:20px;background:#151821}.ds-nav button{background:transparent;color:#8E95A3;border:0;border-bottom:2.5px solid transparent;height:34px;padding:0 3px;font:13.5px -apple-system,sans-serif}.ds-nav button[aria-selected=true]{color:#EEF0F4;border-bottom-color:#5CA3FA}.ds-nav button:hover{color:#C3C8D2}.ds-nav button:focus-visible{outline:2px solid #5CA3FA;outline-offset:-2px}"
     },
     {
       "name": "Conflict filter",
       "kind": "chip",
       "description": "Toggle that filters conflict kinds.",
       "html": "<button class=\"ds-chip\" role=\"checkbox\" aria-checked=\"true\"><span class=\"ds-chip-dot\" aria-hidden=\"true\"></span>Clash</button>",
-      "css": ".ds-chip{display:inline-flex;align-items:center;gap:6px;height:26px;background:#362329;color:#EEF0F4;border:1px solid #80383E;border-radius:13px;padding:0 11px 0 9px;font:500 12.5px -apple-system,sans-serif;cursor:pointer}.ds-chip-dot{width:8px;height:8px;border-radius:50%;background:#FF5C61}.ds-chip[aria-checked=false]{background:transparent;border-color:#272B34;color:#8E95A3}.ds-chip[aria-checked=false]:hover{background:#22262E;border-color:#3A3F4C;color:#C3C8D2}.ds-chip[aria-checked=false] .ds-chip-dot{background:transparent;border:1.5px solid #C77982}.ds-chip:focus-visible{outline:2px solid #5AA7FF;outline-offset:-2px}"
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:6px;height:26px;background:#35232D;color:#EEF0F4;border:1px solid #7F3840;border-radius:13px;padding:0 11px 0 9px;font:500 12.5px -apple-system,sans-serif;cursor:pointer}.ds-chip-dot{width:8px;height:8px;border-radius:50%;background:#FF5C61}.ds-chip[aria-checked=false]{background:transparent;border-color:#262B38;color:#8E95A3}.ds-chip[aria-checked=false]:hover{background:#1F2431;border-color:#3A4152;color:#C3C8D2}.ds-chip[aria-checked=false] .ds-chip-dot{background:transparent;border:1.5px solid #C77982}.ds-chip:focus-visible{outline:2px solid #5CA3FA;outline-offset:-2px}"
     },
     {
       "name": "Shortcut card",
       "kind": "card",
       "description": "Container for related shortcut observations.",
       "html": "<section class=\"ds-card\"><strong>Matched shortcuts</strong><p>One unique match per key observation.</p></section>",
-      "css": ".ds-card{background:#181B21;color:#EEF0F4;border:1px solid #272B34;border-radius:12px;padding:12px 16px;font:13.5px -apple-system,sans-serif}.ds-card p{color:#8E95A3;font-size:12.5px}",
+      "css": ".ds-card{background:#171B25;color:#EEF0F4;border:1px solid #262B38;border-radius:12px;padding:12px 16px;font:13.5px -apple-system,sans-serif}.ds-card p{color:#8E95A3;font-size:12.5px}",
       "refersTo": "card-dark"
     },
     {
@@ -413,14 +413,14 @@
       "kind": "custom",
       "description": "Selectable key in the keyboard map.",
       "html": "<button class=\"ds-key\" aria-label=\"Command T, shared by apps\">T</button>",
-      "css": ".ds-key{width:55px;height:42px;background:#272B34;color:#EEF0F4;border:1px solid #3D4350;border-radius:7px;box-shadow:0 1.5px 0 #07080A;font:13.5px -apple-system,sans-serif;text-align:left;padding:5px 7px}.ds-key:hover{border-color:#8E95A3}.ds-key:focus-visible{outline:2px solid #5AA7FF;outline-offset:2px}"
+      "css": ".ds-key{width:55px;height:42px;background:#262B38;color:#EEF0F4;border:1px solid #4F576A;border-radius:7px;box-shadow:0 1.5px 0 #07090E;font:13.5px -apple-system,sans-serif;text-align:left;padding:5px 7px}.ds-key:hover{border-color:#8E95A3}.ds-key:focus-visible{outline:2px solid #5CA3FA;outline-offset:2px}"
     },
     {
       "name": "Appearance choices",
       "kind": "custom",
       "description": "Joined radio choices used in Settings. Auto follows macOS appearance.",
       "html": "<div class=\"ds-segmented\" role=\"radiogroup\" aria-label=\"Appearance\"><button role=\"radio\" aria-checked=\"true\">Auto</button><button role=\"radio\" aria-checked=\"false\">Light</button><button role=\"radio\" aria-checked=\"false\">Dark</button></div>",
-      "css": ".ds-segmented{display:inline-flex;gap:2px;padding:2px;background:#22262E;border:1px solid #272B34;border-radius:8px}.ds-segmented button{height:22px;padding:0 10px;background:transparent;border:1px solid transparent;border-radius:6px;color:#8E95A3;font:500 12.5px -apple-system,sans-serif;cursor:pointer}.ds-segmented button[aria-checked=true]{background:#3F424A;border-color:#3A3F4C;color:#EEF0F4}.ds-segmented button[aria-checked=false]:hover{background:#2E323A}.ds-segmented button:focus-visible{outline:2px solid #5AA7FF;outline-offset:-2px}"
+      "css": ".ds-segmented{display:inline-flex;gap:2px;padding:2px;background:#1F2431;border:1px solid #262B38;border-radius:8px}.ds-segmented button{height:22px;padding:0 10px;background:transparent;border:1px solid transparent;border-radius:6px;color:#8E95A3;font:500 12.5px -apple-system,sans-serif;cursor:pointer}.ds-segmented button[aria-checked=true]{background:#3C414C;border-color:#3A4152;color:#EEF0F4}.ds-segmented button[aria-checked=false]:hover{background:#2B303D}.ds-segmented button:focus-visible{outline:2px solid #5CA3FA;outline-offset:-2px}"
     },
     {
       "name": "Settings appearance card",
@@ -428,7 +428,7 @@
       "refersTo": "card-dark",
       "description": "Full-width Settings card with a heading and trailing appearance choices. HTML is a visual reference for the native window.",
       "html": "<section class=\"ds-settings-card\"><h3>Appearance</h3><div class=\"ds-segmented\" role=\"radiogroup\" aria-label=\"Appearance\"><button role=\"radio\" aria-checked=\"true\">Auto</button><button role=\"radio\" aria-checked=\"false\">Light</button><button role=\"radio\" aria-checked=\"false\">Dark</button></div></section>",
-      "css": ".ds-settings-card{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#181B21;color:#EEF0F4;border:1px solid #272B34;border-radius:12px;padding:12px 16px;font:13.5px -apple-system,sans-serif}.ds-settings-card h3{margin:0;font-size:15px;font-weight:600}.ds-segmented{display:inline-flex;gap:2px;padding:2px;background:#22262E;border:1px solid #272B34;border-radius:8px}.ds-segmented button{height:22px;padding:0 10px;background:transparent;border:1px solid transparent;border-radius:6px;color:#8E95A3;font:500 12.5px -apple-system,sans-serif;cursor:pointer}.ds-segmented button[aria-checked=true]{background:#3F424A;border-color:#3A3F4C;color:#EEF0F4}.ds-segmented button[aria-checked=false]:hover{background:#2E323A}.ds-segmented button:focus-visible{outline:2px solid #5AA7FF;outline-offset:-2px}"
+      "css": ".ds-settings-card{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#171B25;color:#EEF0F4;border:1px solid #262B38;border-radius:12px;padding:12px 16px;font:13.5px -apple-system,sans-serif}.ds-settings-card h3{margin:0;font-size:15px;font-weight:600}.ds-segmented{display:inline-flex;gap:2px;padding:2px;background:#1F2431;border:1px solid #262B38;border-radius:8px}.ds-segmented button{height:22px;padding:0 10px;background:transparent;border:1px solid transparent;border-radius:6px;color:#8E95A3;font:500 12.5px -apple-system,sans-serif;cursor:pointer}.ds-segmented button[aria-checked=true]{background:#3C414C;border-color:#3A4152;color:#EEF0F4}.ds-segmented button[aria-checked=false]:hover{background:#2B303D}.ds-segmented button:focus-visible{outline:2px solid #5CA3FA;outline-offset:-2px}"
     }
   ],
   "narrative": {

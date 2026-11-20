@@ -2,16 +2,16 @@
 name: Keyclash
 description: Compact native macOS shortcut inventory and conflict reference.
 colors:
-  dark-background: "#0E1014"
-  dark-surface: "#15171C"
-  dark-card: "#181B21"
-  dark-raised: "#22262E"
+  dark-background: "#0F1219"
+  dark-surface: "#151821"
+  dark-card: "#171B25"
+  dark-raised: "#1F2431"
   dark-text: "#EEF0F4"
   dark-secondary: "#C3C8D2"
   dark-muted: "#8E95A3"
-  dark-accent: "#5AA7FF"
+  dark-accent: "#5CA3FA"
   dark-clash: "#FF5C61"
-  dark-blocked: "#FF9F4A"
+  dark-blocked: "#FF9A2E"
   light-background: "#F4F6FA"
   light-surface: "#FFFFFF"
   light-card: "#FFFFFF"
@@ -85,7 +85,9 @@ Blue identifies selection and focus. Red identifies clashes. Orange identifies g
 On 2026-11-19 Bobby asked for the light theme to use the keyclash.app palette. That palette comes from the app icon
 (`assets/make_icon.swift`): paper background, navy ink, the blue key for the accent, and the red key for clashes.
 The accent is darker than the icon's blue key so that text keeps 4.5:1 contrast. The clash red already matched the icon's red key at a darker shade, so it stays.
-The dark theme is unchanged.
+On the same day the dark theme moved to the site's dark sections: navy surfaces from the icon tile, a blue between the icon's two blue-key stops,
+spark yellow for Option, warnings and stars, and spark orange for global blockers. The clash red #FF5C61 stays.
+It is a shade within the icon's red-key gradient, and the darker icon red fails 4.5:1 on its badge tint.
 Neutral surfaces distinguish the window, header, cards, and controls.
 
 **The Evidence Rule.** A status color accompanies a text label. Color alone does not establish a conflict or action outcome.
