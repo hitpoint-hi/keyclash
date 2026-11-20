@@ -25,11 +25,15 @@ pub fn heat_level(n: u32, max: u32) -> f32 {
 /// Fill and border for a heat level: orange for some use, red for the most use.
 pub fn heat_colors(t: &Theme, level: f32) -> (Color32, Color32) {
     if level <= 0.0 {
-        return (t.keycap, t.keycap_line);
+        return (t.keycap, t.key_line);
     }
     let hue = mix(t.blocks, t.clash, level);
-    let strongest = if t.dark { 0.74 } else { 0.5 };
-    (t.tint(hue, 0.1 + (strongest - 0.1) * level), t.tint(hue, 0.4 + 0.5 * level))
+    // `strongest` is the busiest key's fill. The outline grows with the count and leans toward the text color.
+    // Together they keep the outline at 3:1 against the card and the fill, and the label at 4.5:1.
+    let (strongest, lean) = if t.dark { (0.51, 0.3) } else { (0.5, 0.2) };
+    let fill = t.tint(hue, 0.1 + (strongest - 0.1) * level);
+    let line = mix(t.tint(hue, 0.7 + 0.3 * level), t.text, lean);
+    (fill, line)
 }
 
 pub struct UseView {
@@ -432,7 +436,26 @@ mod tests {
         assert_eq!(heat_level(500, 500), 1.0);
         // No use keeps the plain key color.
         let t = &crate::theme::DARK;
-        assert_eq!(heat_colors(t, 0.0), (t.keycap, t.keycap_line));
+        assert_eq!(heat_colors(t, 0.0), (t.keycap, t.key_line));
         assert_ne!(heat_colors(t, 0.5).0, heat_colors(t, 1.0).0);
+    }
+
+    #[test]
+    fn heat_keys_keep_their_outline_and_label_readable() {
+        use crate::theme::{DARK, LIGHT, contrast};
+        for t in [&DARK, &LIGHT] {
+            for i in 0..=20 {
+                let level = i as f32 / 20.0;
+                let (fill, line) = heat_colors(t, level);
+                let c = contrast(line, t.card);
+                assert!(c >= 3.0, "heat {level} outline on the card (dark={}) has contrast {c:.2}", t.dark);
+                let c = contrast(line, fill);
+                assert!(level == 0.0 || c >= 3.0, "heat {level} outline on its fill (dark={}) has contrast {c:.2}", t.dark);
+                // The key label and its press count share this color.
+                let label = if level == 0.0 { t.muted } else { t.text };
+                let c = contrast(label, fill);
+                assert!(c >= 4.5, "heat {level} key label (dark={}) has contrast {c:.2}", t.dark);
+            }
+        }
     }
 }

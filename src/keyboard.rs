@@ -23,7 +23,7 @@ pub struct KeyboardMap {
 }
 
 /// What a key is used for with the current modifier keys; it picks the key's colors.
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 enum Use {
     Free,
     /// Used inside this many apps, with no conflict.
@@ -33,13 +33,20 @@ enum Use {
     Clash,
 }
 
+/// An inset focus ring with space on both sides, even when hover thickens the status outline.
+fn key_focus_ring(painter: &egui::Painter, face: egui::Rect, t: &Theme) {
+    painter.rect_stroke(face.shrink(2.75), 4.25, Stroke::new(1.25, t.text), egui::StrokeKind::Inside);
+}
+
 /// Fill and border of a key.
+/// The border keeps 3:1 against the card and the key's fill.
 fn key_colors(t: &Theme, u: Use) -> (Color32, Color32) {
     match u {
-        Use::Free => (t.keycap, t.keycap_line),
-        Use::Apps(n) => (t.tint(t.accent, 0.14 + 0.05 * n.min(5) as f32), t.tint(t.accent, 0.6)),
-        Use::Shared => (t.tint(t.shared, if t.dark { 0.42 } else { 0.34 }), t.tint(t.shared, 0.75)),
-        Use::Blocks => (t.tint(t.blocks, 0.32), t.tint(t.blocks, 0.8)),
+        Use::Free => (t.keycap, t.key_line),
+        Use::Apps(n) => (t.tint(t.accent, 0.14 + 0.05 * n.min(5) as f32), t.accent),
+        Use::Shared if t.dark => (t.tint(t.shared, 0.42), t.text2),
+        Use::Shared => (t.tint(t.shared, 0.34), t.shared),
+        Use::Blocks => (t.tint(t.blocks, 0.32), t.blocks),
         Use::Clash => (t.tint(t.clash, 0.38), t.clash),
     }
 }
@@ -273,7 +280,8 @@ impl KeyboardMap {
                                 let (label, name) = if typed == name { (label, name) } else { (typed.as_str(), typed.as_str()) };
                                 let size = egui::vec2(unit * w - gap, key_h);
                                 let (rect, resp) = ui.allocate_exact_size(size, egui::Sense::click());
-                                let painter = ui.painter_at(rect.expand(2.0));
+                                // Room for the selection ring outside the key. Keys sit 5 points apart.
+                                let painter = ui.painter_at(rect.expand(4.0));
                                 let face = egui::Rect::from_min_max(rect.min, rect.max - egui::vec2(0.0, 1.5));
                                 if let Some(bit) = modifier_bit(name) {
                                     let on = mods & bit != 0;
@@ -286,12 +294,14 @@ impl KeyboardMap {
                                         CMD => t.cmd,
                                         _ => t.fnk,
                                     };
-                                    let (fill, line) = if on { (t.tint(color, 0.3), color) } else { (t.keycap, t.keycap_line) };
+                                    let (fill, line) = if on { (t.tint(color, 0.3), color) } else { (t.keycap, t.key_line) };
                                     painter.rect_filled(face.translate(egui::vec2(0.0, 1.5)), 7.0, t.keycap_edge);
                                     painter.rect(face, 7.0, fill, Stroke::new(if on { 1.5 } else { 1.0 }, line), egui::StrokeKind::Inside);
                                     let fg = if on { t.text } else if resp.hovered() { color } else { t.muted };
                                     painter.text(face.center(), egui::Align2::CENTER_CENTER, label, egui::FontId::proportional(15.0), fg);
-                                    crate::theme::focus_ring(ui, &resp, 7);
+                                    if resp.has_focus() {
+                                        key_focus_ring(&painter, face, t);
+                                    }
                                     if resp.on_hover_cursor(egui::CursorIcon::PointingHand).clicked() {
                                         self.locked ^= bit;
                                     self.selected = None;
@@ -323,16 +333,14 @@ impl KeyboardMap {
                                 };
                                 let accessible = format!("{}: {status}, {} apps, {pressed} presses", crate::keys::trigger_words(&trig), owners.len());
                                 resp.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, ui.is_enabled(), selected, &accessible));
-                                crate::theme::focus_ring(ui, &resp, 7);
-                                let stroke = if selected {
-                                    Stroke::new(2.0, t.text)
-                                } else if resp.hovered() {
-                                    Stroke::new(1.0, t.muted)
-                                } else {
-                                    Stroke::new(1.0, line)
-                                };
+                                // Preserve the status outline when drawing hover, selection, and focus.
+                                let width = if resp.hovered() { 2.0 } else { 1.0 };
                                 painter.rect_filled(face.translate(egui::vec2(0.0, 1.5)), 7.0, t.keycap_edge);
-                                painter.rect(face, 7.0, fill, stroke, egui::StrokeKind::Inside);
+                                painter.rect(face, 7.0, fill, Stroke::new(width, line), egui::StrokeKind::Inside);
+                                if selected {
+                                    // A 1-point gap keeps the ring apart from the status outline.
+                                    painter.rect_stroke(face.expand(1.0), 8.0, Stroke::new(2.0, t.text), egui::StrokeKind::Outside);
+                                }
                                 let fg = if (heat && pressed == 0) || (!heat && usage == Use::Free) { t.muted } else { t.text };
                                 // Symbols such as ⇥ and ↩ come from a fallback font that draws them small.
                                 let label_size = if label.is_ascii() { 13.5 } else { 16.0 };
@@ -342,15 +350,20 @@ impl KeyboardMap {
                                     painter.text(face.left_top() + egui::vec2(7.0, 5.0), egui::Align2::LEFT_TOP, label, egui::FontId::proportional(label_size), fg);
                                 }
                                 // The small number: presses in the Use colors, apps in the Status colors.
+                                // It uses the label color: text2 drops under 4.5:1 on the strongest fills.
                                 let small = if heat { pressed as usize } else { owners.len() };
                                 if small > 0 && !compact {
                                     painter.text(
-                                        face.right_bottom() - egui::vec2(7.0, 4.0),
+                                        face.right_bottom() - egui::vec2(7.0, 5.0),
                                         egui::Align2::RIGHT_BOTTOM,
                                         crate::theme::num(small),
                                         egui::FontId::proportional(11.0),
-                                        t.text2,
+                                        fg,
                                     );
+                                }
+                                // Drawn last, so the key face does not cover it.
+                                if resp.has_focus() {
+                                    key_focus_ring(&painter, face, t);
                                 }
                                 let resp = resp.on_hover_ui(|ui| {
                                     ui.label(semi(format!("{}{}", mod_symbols(mods).join(""), key_symbol(name))));
@@ -519,6 +532,100 @@ pub fn prepare_scroll(input: &mut egui::RawInput) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn selection_hover_and_focus_keep_the_status_outline_visible() {
+        use egui::accesskit::{Action, ActionRequest, NodeId, TreeId};
+
+        let ctx = egui::Context::default();
+        ctx.enable_accesskit();
+        let mut map = KeyboardMap { selected: Some("F1".into()), ..Default::default() };
+        let mut use_view = crate::use_tab::UseView::default();
+        let list = [Shortcut::new("Test", "Action", Trigger::combo(0, "F1"), crate::model::Scope::App, crate::model::Origin::MenuFile)];
+        let input = egui::RawInput { screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1240.0, 820.0))), ..Default::default() };
+        let mut draw = |events| {
+            let mut output = ctx.run_ui(egui::RawInput { events, ..input.clone() }, |ui| {
+                egui::CentralPanel::default().show(ui, |ui| map.show(ui, &list, &[], &mut use_view, &Default::default()));
+            });
+            output.textures_delta.clear();
+            output
+        };
+        draw(vec![]);
+        let resting = draw(vec![]);
+        let nodes = &resting.platform_output.accesskit_update.as_ref().unwrap().nodes;
+        let (key_id, _) = nodes.iter().find(|(_, node)| {
+            node.label().is_some_and(|label| label.contains("f1: used inside an app"))
+        }).expect("the shortcut key is exposed to accessibility tools");
+        let (modifier_id, modifier) = nodes.iter().find(|(_, node)| {
+            node.label() == Some("Command modifier")
+        }).expect("the Command key is exposed to accessibility tools");
+        let (key_id, modifier_id) = (*key_id, *modifier_id);
+        let focus = |target_node: NodeId| egui::Event::AccessKitActionRequest(ActionRequest {
+            action: Action::Focus,
+            target_tree: TreeId::ROOT,
+            target_node,
+            data: None,
+        });
+        let modifier = modifier.bounds().unwrap();
+        let modifier_center = egui::pos2((modifier.x0 + modifier.x1) as f32 / 2.0, (modifier.y0 + modifier.y1) as f32 / 2.0);
+        let rects = |output: egui::FullOutput| -> Vec<_> {
+            output.shapes.into_iter().filter_map(|shape| {
+                if let egui::epaint::Shape::Rect(rect) = shape.shape { Some(rect) } else { None }
+            }).collect()
+        };
+        // Another test can change the process-wide theme, so match the palette used in each frame.
+        let is_status = |rect: &&egui::epaint::RectShape| {
+            [&crate::theme::DARK, &crate::theme::LIGHT].into_iter()
+                .any(|t| (rect.fill, rect.stroke.color) == key_colors(t, Use::Apps(1)))
+        };
+        let resting = rects(resting);
+        let key = resting.iter().find(is_status).expect("F1 has a status outline");
+        assert_eq!(key.stroke.width, 1.0);
+        draw(vec![egui::Event::PointerMoved(key.rect.center())]);
+        let active = draw(vec![focus(key_id)]);
+        assert_eq!(active.platform_output.accesskit_update.as_ref().unwrap().focus, key_id);
+        let active = rects(active);
+        let key = active.iter().find(is_status).expect("hover keeps the F1 status color");
+        assert_eq!(key.stroke.width, 2.0);
+        let has_text_color = |rect: &egui::epaint::RectShape| {
+            rect.stroke.color == crate::theme::DARK.text || rect.stroke.color == crate::theme::LIGHT.text
+        };
+        assert!(active.iter().any(|rect| {
+            has_text_color(rect) && rect.stroke_kind == egui::StrokeKind::Outside && rect.rect == key.rect.expand(1.0)
+        }), "selection has a ring outside the status outline");
+        assert!(active.iter().any(|rect| {
+            has_text_color(rect) && rect.stroke_kind == egui::StrokeKind::Inside
+                && rect.rect.center() == key.rect.center() && rect.rect.left() > key.rect.left() + key.stroke.width
+        }), "focus has a ring inside and separate from the hovered outline");
+
+        let modifier_focused = draw(vec![focus(modifier_id)]);
+        assert_eq!(modifier_focused.platform_output.accesskit_update.as_ref().unwrap().focus, modifier_id);
+        assert!(rects(modifier_focused).iter().any(|rect| {
+            has_text_color(rect) && rect.stroke_kind == egui::StrokeKind::Inside
+                && rect.rect.contains(modifier_center)
+        }), "the modifier also draws a visible focus ring");
+    }
+
+    #[test]
+    fn key_outlines_and_labels_have_contrast() {
+        use crate::theme::{DARK, LIGHT, contrast};
+        for t in [&DARK, &LIGHT] {
+            for u in [Use::Free, Use::Apps(1), Use::Apps(3), Use::Apps(5), Use::Shared, Use::Blocks, Use::Clash] {
+                let (fill, line) = key_colors(t, u);
+                let c = contrast(line, t.card);
+                assert!(c >= 3.0, "{u:?} outline on the card (dark={}) has contrast {c:.2}", t.dark);
+                let c = contrast(line, fill);
+                assert!(c >= 3.0, "{u:?} outline on its fill (dark={}) has contrast {c:.2}", t.dark);
+                // The key label and its small count share this color.
+                let label = if u == Use::Free { t.muted } else { t.text };
+                let c = contrast(label, fill);
+                assert!(c >= 4.5, "{u:?} key label (dark={}) has contrast {c:.2}", t.dark);
+                // Selection and focus rings use the text color.
+                let c = contrast(t.text, t.card).min(contrast(t.text, fill));
+                assert!(c >= 3.0, "{u:?} selection ring (dark={}) has contrast {c:.2}", t.dark);
+            }
+        }
+    }
 
     fn text_rect(output: &egui::FullOutput, text: &str) -> egui::Rect {
         output.shapes.iter().find_map(|shape| {

@@ -159,6 +159,13 @@ Each interactive key exposes the full combination, status, app count, and press 
 Modifier keys expose their names and selected states. The keyboard stays in the left pane while matching shortcuts scroll in the right pane.
 The shortcut heading and count stay visible. Modifier-held wheel input scrolls the list without zooming the interface.
 Pressing a full shortcut or clicking a key while holding modifiers selects the complete combination. The selection stays visible after key release. A new modifier press or modifier click clears the key filter and shows all matching shortcuts.
+Every key outline keeps 3:1 against the card and the key's fill. In the dark theme, shared keys use a lighter outline and fill to distinguish them from free keys.
+Unused keys use `key_line`. The small key caps in shortcut rows keep the quieter `keycap_line`.
+Heat-map outlines change from orange to red as the press count rises. They keep 3:1 contrast against the card and the fill. Labels keep 4.5:1 contrast at every press count.
+Hover thickens the status outline. Selection adds an outer ring in the text color, 1 point away from the outline.
+Keyboard focus adds an inset ring in the text color on every map key, including modifiers. A gap separates it from the status outline.
+The small count on a key uses the label color.
+Tests in `keyboard.rs` and `use_tab.rs` check these ratios in both themes.
 
 ### Cards and shortcut rows
 

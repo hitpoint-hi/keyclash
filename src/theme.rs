@@ -29,6 +29,8 @@ pub struct Theme {
     pub keycap: Color32,
     pub keycap_line: Color32,
     pub keycap_edge: Color32,
+    /// Outline of an unused key on the keyboard map: 3:1 against the card and the key cap.
+    pub key_line: Color32,
     // Modifier symbols. Each hue is tuned to stay readable on its background.
     pub cmd: Color32,
     pub opt: Color32,
@@ -72,6 +74,7 @@ pub static DARK: Theme = Theme {
     keycap: rgb(0x262B38),
     keycap_line: rgb(0x4F576A),
     keycap_edge: rgb(0x07090E),
+    key_line: rgb(0x767F94),
     cmd: rgb(0x4CC2FF),
     // The icon's spark yellow.
     opt: rgb(0xFFC94A),
@@ -112,6 +115,7 @@ pub static LIGHT: Theme = Theme {
     keycap: rgb(0xFAFBFC),
     keycap_line: rgb(0xC6CBD5),
     keycap_edge: rgb(0xB3B9C5),
+    key_line: rgb(0x878F9D),
     cmd: rgb(0x0B72CC),
     opt: rgb(0xA26200),
     shift: rgb(0x16803A),
@@ -534,6 +538,20 @@ pub fn dot(ui: &mut egui::Ui, color: Color32) {
     ui.painter().circle_filled(rect.center(), 3.5, color);
 }
 
+/// WCAG contrast ratio of two opaque colors.
+#[cfg(test)]
+pub(crate) fn contrast(a: Color32, b: Color32) -> f32 {
+    let lum = |c: Color32| {
+        let f = |v: u8| {
+            let x = v as f32 / 255.0;
+            if x <= 0.03928 { x / 12.92 } else { ((x + 0.055) / 1.055).powf(2.4) }
+        };
+        0.2126 * f(c.r()) + 0.7152 * f(c.g()) + 0.0722 * f(c.b())
+    };
+    let (x, y) = (lum(a), lum(b));
+    (x.max(y) + 0.05) / (x.min(y) + 0.05)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -591,19 +609,6 @@ mod tests {
             assert!(reachable.iter().any(|s| s.contains("f1: used inside an app")), "{reachable:?}");
             assert!(reachable.contains(&"Star: Action in Test"), "{reachable:?}");
         }
-    }
-
-    /// WCAG contrast ratio of two opaque colors.
-    fn contrast(a: Color32, b: Color32) -> f32 {
-        let lum = |c: Color32| {
-            let f = |v: u8| {
-                let x = v as f32 / 255.0;
-                if x <= 0.03928 { x / 12.92 } else { ((x + 0.055) / 1.055).powf(2.4) }
-            };
-            0.2126 * f(c.r()) + 0.7152 * f(c.g()) + 0.0722 * f(c.b())
-        };
-        let (x, y) = (lum(a), lum(b));
-        (x.max(y) + 0.05) / (x.min(y) + 0.05)
     }
 
     #[test]
