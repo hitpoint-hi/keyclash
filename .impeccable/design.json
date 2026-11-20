@@ -181,16 +181,16 @@
       "light-background": {
         "role": "neutral",
         "displayName": "Light Background",
-        "canonical": "#F3F4F6",
+        "canonical": "#F4F6FA",
         "tonalRamp": [
-          "#0B0B0C",
-          "#232425",
-          "#3F4041",
-          "#5F6062",
-          "#828385",
-          "#A7A8A9",
-          "#C9CACC",
-          "#EDEEF0"
+          "#0A0B0E",
+          "#232427",
+          "#3E4043",
+          "#5F6064",
+          "#818387",
+          "#A6A8AB",
+          "#C9CACE",
+          "#ECEEF2"
         ]
       },
       "light-surface": {
@@ -226,45 +226,45 @@
       "light-raised": {
         "role": "neutral",
         "displayName": "Light Raised",
-        "canonical": "#EEF0F3",
+        "canonical": "#EAEDF3",
         "tonalRamp": [
-          "#0A0B0D",
-          "#232426",
-          "#3E4042",
-          "#5F6063",
-          "#818386",
-          "#A6A8AB",
-          "#C9CBCD",
-          "#EDEFF2"
+          "#090B0F",
+          "#222428",
+          "#3D4044",
+          "#5E6065",
+          "#808389",
+          "#A5A8AD",
+          "#C8CAD0",
+          "#EBEEF4"
         ]
       },
       "light-text": {
         "role": "neutral",
         "displayName": "Light Text",
-        "canonical": "#14171C",
+        "canonical": "#151821",
         "tonalRamp": [
-          "#090B0F",
-          "#212429",
-          "#3C4046",
-          "#5D6167",
-          "#7F838A",
-          "#A4A8AF",
-          "#C7CBD0",
+          "#0A0B0F",
+          "#21242B",
+          "#3C3F49",
+          "#5C606B",
+          "#7F838E",
+          "#A4A7B1",
+          "#C8CAD0",
           "#EDEEF0"
         ]
       },
       "light-secondary": {
         "role": "neutral",
         "displayName": "Light Secondary",
-        "canonical": "#38404E",
+        "canonical": "#464D5E",
         "tonalRamp": [
-          "#080B11",
-          "#1E242E",
-          "#38404E",
-          "#586170",
-          "#7B8494",
-          "#A0A8B6",
-          "#C6CBD4",
+          "#090B11",
+          "#1F242F",
+          "#39404E",
+          "#596072",
+          "#7C8395",
+          "#A1A8B7",
+          "#C6CAD4",
           "#EDEEF1"
         ]
       },
@@ -286,16 +286,16 @@
       "light-accent": {
         "role": "primary",
         "displayName": "Light Accent",
-        "canonical": "#1668DC",
+        "canonical": "#1F63D0",
         "tonalRamp": [
-          "#00052F",
-          "#001966",
-          "#00349B",
-          "#0058CB",
-          "#367FEE",
-          "#6DA8FF",
-          "#A6CCFF",
-          "#E2F0FF"
+          "#000825",
+          "#001F56",
+          "#00398D",
+          "#1359C5",
+          "#3F7FE9",
+          "#72A7FF",
+          "#ADCCFF",
+          "#E5EFFE"
         ]
       },
       "light-clash": {

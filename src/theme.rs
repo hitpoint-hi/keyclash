@@ -82,20 +82,24 @@ pub static DARK: Theme = Theme {
     shared: rgb(0x8E95A3),
 };
 
+/// The light theme uses the keyclash.app palette, which comes from the app icon
+/// (`assets/make_icon.swift`): paper, navy ink, the blue key and the red key.
 pub static LIGHT: Theme = Theme {
     dark: false,
-    bg: rgb(0xF3F4F6),
+    bg: rgb(0xF4F6FA),
     surface: rgb(0xFFFFFF),
     card: rgb(0xFFFFFF),
-    raised: rgb(0xEEF0F3),
+    raised: rgb(0xEAEDF3),
     field: rgb(0xFFFFFF),
-    line: rgb(0xE0E3E9),
+    line: rgb(0xDFE3EA),
     line_strong: rgb(0xC6CBD5),
-    text: rgb(0x14171C),
-    text2: rgb(0x38404E),
+    text: rgb(0x151821),
+    // The site's secondary (#4B5263), a step darker so it keeps 7:1 on raised controls.
+    text2: rgb(0x464D5E),
     muted: rgb(0x5F6877),
     faint: rgb(0x949CAA),
-    accent: rgb(0x1668DC),
+    // The icon's blue key (#2B74E0), darkened for 4.5:1 on cards and under white text.
+    accent: rgb(0x1F63D0),
     on_accent: rgb(0xFFFFFF),
     keycap: rgb(0xFAFBFC),
     keycap_line: rgb(0xC6CBD5),
@@ -108,6 +112,8 @@ pub static LIGHT: Theme = Theme {
     good: rgb(0x16803A),
     warn: rgb(0xA26200),
     star: rgb(0xD99A00),
+    // The icon's red key (#E83F4D) at the same hue, darkened for 4.5:1 on its own badge tint
+    // and kept apart from the Control pink.
     clash: rgb(0xC21F2B),
     blocks: rgb(0xAD4B00),
     same: rgb(0x7D5D00),
@@ -595,7 +601,8 @@ mod tests {
     #[test]
     fn text_is_readable_in_both_themes() {
         for t in [&DARK, &LIGHT] {
-            for bg in [t.bg, t.surface, t.card] {
+            // `raised` fills buttons and hovered chips, which show text2 labels.
+            for bg in [t.bg, t.surface, t.card, t.raised] {
                 for (name, fg, min) in [("text", t.text, 7.0), ("text2", t.text2, 7.0), ("muted", t.muted, 4.5)] {
                     let c = contrast(fg, bg);
                     assert!(c >= min, "{name} on {bg:?} (dark={}) has contrast {c:.2}, need {min}", t.dark);

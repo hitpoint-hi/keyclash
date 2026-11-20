@@ -12,14 +12,14 @@ colors:
   dark-accent: "#5AA7FF"
   dark-clash: "#FF5C61"
   dark-blocked: "#FF9F4A"
-  light-background: "#F3F4F6"
+  light-background: "#F4F6FA"
   light-surface: "#FFFFFF"
   light-card: "#FFFFFF"
-  light-raised: "#EEF0F3"
-  light-text: "#14171C"
-  light-secondary: "#38404E"
+  light-raised: "#EAEDF3"
+  light-text: "#151821"
+  light-secondary: "#464D5E"
   light-muted: "#5F6877"
-  light-accent: "#1668DC"
+  light-accent: "#1F63D0"
   light-clash: "#C21F2B"
   light-blocked: "#AD4B00"
 typography:
@@ -82,6 +82,10 @@ This record describes the current Rust/egui implementation. It does not establis
 `src/theme.rs` supplies both appearances. Use the active theme through `th()`.
 The frontmatter records a subset of those exact source values. Preserve the other modifier and status colors in the source.
 Blue identifies selection and focus. Red identifies clashes. Orange identifies global blockers.
+On 2026-11-19 Bobby asked for the light theme to use the keyclash.app palette. That palette comes from the app icon
+(`assets/make_icon.swift`): paper background, navy ink, the blue key for the accent, and the red key for clashes.
+The accent is darker than the icon's blue key so that text keeps 4.5:1 contrast. The clash red already matched the icon's red key at a darker shade, so it stays.
+The dark theme is unchanged.
 Neutral surfaces distinguish the window, header, cards, and controls.
 
 **The Evidence Rule.** A status color accompanies a text label. Color alone does not establish a conflict or action outcome.
