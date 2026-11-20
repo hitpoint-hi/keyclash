@@ -28,9 +28,9 @@ Site: [keyclash.app](https://keyclash.app). Its source is in [site/](site/).
 
 ## Install
 
-Keyclash 0.1.1 is an early version for friends. It is signed with an Apple Developer ID and notarized by Apple, so macOS opens it without a warning.
+Keyclash 0.1.2 is an early version for friends. It is signed with an Apple Developer ID and notarized by Apple, so macOS opens it without a warning.
 
-1. Download `Keyclash-0.1.1.zip` from the [latest release](https://github.com/hitpoint-hi/keyclash/releases/latest), unzip it, and move **Keyclash** to your Applications folder.
+1. Download `Keyclash-0.1.2.zip` from the [latest release](https://github.com/hitpoint-hi/keyclash/releases/latest), unzip it, and move **Keyclash** to your Applications folder.
 2. Open Keyclash. Read the welcome page and click **Start**.
 3. Click **Ask macOS for permission** and turn on Keyclash in the Accessibility list. Without this permission, Keyclash still shows the shortcuts that it finds in files.
 4. Optional: macOS guards the settings of sandboxed apps (for example macshot and Maccy). To see their hotkeys, turn on Keyclash in System Settings › Privacy & Security › Full Disk Access, then click **Scan again**. The "Where we looked" tab tells you when macOS blocked these files.
