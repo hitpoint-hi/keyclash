@@ -1,6 +1,6 @@
 # Keyclash website
 
-The static homepage at https://keyclash.app introduces the Mac download, an interactive shortcut map, and a 65-second product tour.
+The static homepage at https://keyclash.app contains the Mac download, a 24-second launch video, an interactive shortcut map, and a 65-second product walkthrough.
 
 ## Local preview
 
@@ -10,14 +10,14 @@ From this folder, run:
 python3 -m http.server 8000 --bind 127.0.0.1
 ```
 
-Open http://127.0.0.1:8000. The site has no build step. The page loads its fonts, artwork, tour, and keyboard demo from this folder.
+Open http://127.0.0.1:8000. The site has no build step. The page loads its fonts, artwork, videos, and keyboard demo from this folder.
 
 ## Page files
 
 - `index.html` contains the page, download links, transcript, and installation guide.
 - `homepage.css` defines the layout and keyboard states.
 - `keymap.js` runs the example keyboard. Its sample data is independent of the visitor’s Mac.
-- `media/` contains the keycap artwork, video, and video poster.
+- `media/` contains the keycap artwork, videos, and video posters.
 - `fonts/` contains the local fonts and their SIL Open Font Licenses.
 - `share.jpg` supplies the social link preview.
 

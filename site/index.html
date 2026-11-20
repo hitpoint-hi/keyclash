@@ -21,7 +21,7 @@
     <meta name="theme-color" content="#f4f6fa" />
     <link rel="canonical" href="https://keyclash.app/" />
     <meta property="og:url" content="https://keyclash.app/" />
-    <link rel="stylesheet" href="homepage.css?v=logo-palette" />
+    <link rel="stylesheet" href="homepage.css?v=launch-video" />
     <link rel="preload" href="fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body id="top">
@@ -50,11 +50,11 @@
               ><svg aria-hidden="true" viewBox="0 0 24 24">
                 <path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4" /></svg
               >Download for Mac</a
-            ><a class="tour-link" href="#tour"
+            ><a class="launch-link" href="#launch"
               ><svg aria-hidden="true" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="9" />
                 <path d="m10 8 6 4-6 4z" /></svg
-              >Watch tour <small>1:05</small></a
+              >Watch launch video <small>0:24</small></a
             >
           </div>
           <p class="release">
@@ -84,6 +84,36 @@
         <div>Karabiner-Elements</div>
         <div>Wispr Flow</div>
       </div>
+      <section class="launch wrap section" id="launch" aria-labelledby="launch-h">
+        <div class="section-intro">
+          <h2 id="launch-h">Launch video.</h2>
+          <p><a href="#tour">Watch the product walkthrough</a> (1:05)</p>
+        </div>
+        <video
+          controls
+          playsinline
+          preload="none"
+          width="1920"
+          height="1080"
+          poster="media/keyclash-launch.jpg"
+          aria-label="Keyclash launch video, 24 seconds"
+        >
+          <source src="media/keyclash-launch.mp4" type="video/mp4" />
+          <a href="media/keyclash-launch.mp4">Download the Keyclash launch video</a>
+        </video>
+        <details>
+          <summary>Read the video description</summary>
+          <p>
+            AeroSpace and Wispr Flow both claim Control–Option–Space. The keys split and form the Keyclash
+            logo. A keyboard map shows both apps on the Space key. The animation shows how moving one
+            shortcut to a free key can resolve the clash.
+          </p>
+          <p>
+            In Safari, press Command twice to open Peek. Type “new tab” to filter the shortcuts. Press
+            Return to open a new tab. Keyclash is free and open source for macOS 11 and later.
+          </p>
+        </details>
+      </section>
       <section class="map-section" id="map" aria-labelledby="map-h">
         <div class="wrap">
           <div class="section-intro">
@@ -130,7 +160,7 @@
       </section>
       <section class="tour wrap section" id="tour" aria-labelledby="tour-h">
         <div class="section-intro">
-          <h2 id="tour-h">See it <em>in action.</em></h2>
+          <h2 id="tour-h">Product walkthrough.</h2>
           <p>Watch Keyclash find a clash, suggest a free shortcut, and open Peek in Safari.</p>
         </div>
         <div class="tour-grid">

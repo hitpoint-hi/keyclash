@@ -143,7 +143,7 @@ footer > a:not(.brand) {
 }
 .mast a:hover,
 footer a:hover,
-.tour-link:hover {
+.launch-link:hover {
   color: var(--blue-deep);
 }
 .repo-link {
@@ -177,7 +177,7 @@ footer a:hover,
   gap: 16px 22px;
 }
 .button,
-.tour-link {
+.launch-link {
   display: inline-flex;
   gap: 9px;
   align-items: center;
@@ -204,8 +204,8 @@ footer a:hover,
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.tour-link small {
-  font: 11px var(--mono);
+.launch-link small {
+  font: 13px var(--mono);
   color: var(--secondary);
 }
 .release,
@@ -467,6 +467,9 @@ button {
 .privacy {
   padding-block: clamp(54px, 6.6vw, 95px);
 }
+.launch {
+  max-width: 1040px;
+}
 .tour-grid,
 .peek-grid,
 .split {
@@ -481,6 +484,7 @@ video {
   width: 100%;
   height: auto;
   background: var(--night);
+  color: var(--night-text);
   border-radius: 6px;
 }
 summary {
@@ -490,7 +494,7 @@ summary {
 details p {
   margin-top: 12px;
 }
-.tour-grid details {
+video + details {
   margin-top: 12px;
 }
 .tour-grid ol {
@@ -770,7 +774,7 @@ footer .brand {
   .button {
     padding: 12px;
   }
-  .tour-link small {
+  .launch-link small {
     display: none;
   }
   figcaption {
