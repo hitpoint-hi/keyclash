@@ -83,11 +83,13 @@ This record describes the current Rust/egui implementation. It does not establis
 The frontmatter records a subset of those exact source values. Preserve the other modifier and status colors in the source.
 Blue identifies selection and focus. Red identifies clashes. Orange identifies global blockers.
 On 2026-11-19 Bobby asked for the light theme to use the keyclash.app palette. That palette comes from the app icon
-(`assets/make_icon.swift`): paper background, navy ink, the blue key for the accent, and the red key for clashes.
-The accent is darker than the icon's blue key so that text keeps 4.5:1 contrast. The clash red already matched the icon's red key at a darker shade, so it stays.
+(`assets/make_icon.swift`): paper background, navy ink, the blue half of the key for the accent, and the red half for clashes.
+The accent is darker than the icon's blue half so that text keeps 4.5:1 contrast. The clash red already matched the icon's red half at a darker shade, so it stays.
 On the same day the dark theme moved to the site's dark sections: navy surfaces from the icon tile, a blue between the icon's two blue-key stops,
-spark yellow for Option, warnings and stars, and spark orange for global blockers. The clash red #FF5C61 stays.
-It is a shade within the icon's red-key gradient, and the darker icon red fails 4.5:1 on its badge tint.
+spark yellow (the glow around the icon's crack) for Option, warnings and stars, and spark orange for global blockers. The clash red #FF5C61 stays.
+It is a shade within the icon's red-half gradient, and the darker icon red fails 4.5:1 on its badge tint.
+Later on 2026-11-19 the icon changed from two keycaps under a spark to one ⌘ key cracked into a blue half and a red half.
+The palette values did not change.
 Neutral surfaces distinguish the window, header, cards, and controls.
 
 **The Evidence Rule.** A status color accompanies a text label. Color alone does not establish a conflict or action outcome.

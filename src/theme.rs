@@ -52,7 +52,7 @@ const fn rgb(hex: u32) -> Color32 {
 }
 
 /// The dark theme uses the dark sections of keyclash.app, which come from the app icon
-/// (`assets/make_icon.swift`): the navy tile, the blue and red keys, and the yellow spark.
+/// (`assets/make_icon.swift`): the navy tile, the blue and red halves of the cracked key, and the yellow light in the crack.
 pub static DARK: Theme = Theme {
     dark: true,
     // Navy surfaces from the icon tile (#0F1219 to #2B3145), darkest at the back.
@@ -67,7 +67,7 @@ pub static DARK: Theme = Theme {
     text2: rgb(0xC3C8D2),
     muted: rgb(0x8E95A3),
     faint: rgb(0x626A7D),
-    // The icon's blue key, a shade between its two stops (#6DB4FF and #2B74E0).
+    // The icon's blue half, a shade between its two stops (#6DB4FF and #2B74E0).
     // Light enough for 4.5:1 on its own badge tint and 3:1 for key outlines on cards.
     accent: rgb(0x5CA3FA),
     on_accent: rgb(0x08111F),
@@ -76,7 +76,7 @@ pub static DARK: Theme = Theme {
     keycap_edge: rgb(0x07090E),
     key_line: rgb(0x767F94),
     cmd: rgb(0x4CC2FF),
-    // The icon's spark yellow.
+    // The icon's spark yellow: the glow around the crack.
     opt: rgb(0xFFC94A),
     shift: rgb(0x4ADE80),
     ctrl: rgb(0xFF7AC8),
@@ -84,9 +84,9 @@ pub static DARK: Theme = Theme {
     good: rgb(0x4ADE80),
     warn: rgb(0xFFC94A),
     star: rgb(0xFFC94A),
-    // A shade within the icon's red-key gradient (#FF8C7A to #E83F4D), light enough for 4.5:1 on its badge tint.
+    // A shade within the icon's red-half gradient (#FF8C7A to #E83F4D), light enough for 4.5:1 on its badge tint.
     clash: rgb(0xFF5C61),
-    // The icon's spark orange.
+    // The icon's spark orange: the outer glow of the crack.
     blocks: rgb(0xFF9A2E),
     same: rgb(0xEDC94A),
     inside: rgb(0xA896FF),
@@ -94,7 +94,7 @@ pub static DARK: Theme = Theme {
 };
 
 /// The light theme uses the keyclash.app palette, which comes from the app icon
-/// (`assets/make_icon.swift`): paper, navy ink, the blue key and the red key.
+/// (`assets/make_icon.swift`): paper, navy ink, and the blue and red halves of the key.
 pub static LIGHT: Theme = Theme {
     dark: false,
     bg: rgb(0xF4F6FA),
@@ -109,7 +109,7 @@ pub static LIGHT: Theme = Theme {
     text2: rgb(0x464D5E),
     muted: rgb(0x5F6877),
     faint: rgb(0x949CAA),
-    // The icon's blue key (#2B74E0), darkened for 4.5:1 on cards and under white text.
+    // The icon's blue half (#2B74E0), darkened for 4.5:1 on cards and under white text.
     accent: rgb(0x1F63D0),
     on_accent: rgb(0xFFFFFF),
     keycap: rgb(0xFAFBFC),
@@ -124,7 +124,7 @@ pub static LIGHT: Theme = Theme {
     good: rgb(0x16803A),
     warn: rgb(0xA26200),
     star: rgb(0xD99A00),
-    // The icon's red key (#E83F4D) at the same hue, darkened for 4.5:1 on its own badge tint
+    // The icon's red half (#E83F4D) at the same hue, darkened for 4.5:1 on its own badge tint
     // and kept apart from the Control pink.
     clash: rgb(0xC21F2B),
     blocks: rgb(0xAD4B00),
