@@ -73,6 +73,28 @@ impl ScopeFilter {
     }
 }
 
+struct ShortcutSearch<'a> {
+    words: Vec<&'a str>,
+    trigger: Option<Trigger>,
+}
+
+impl<'a> ShortcutSearch<'a> {
+    fn new(lowercase_query: &'a str) -> Self {
+        Self {
+            words: lowercase_query.split_whitespace().collect(),
+            trigger: parse_typed(lowercase_query),
+        }
+    }
+
+    fn matches(&self, s: &Shortcut) -> bool {
+        if self.words.is_empty() || self.trigger.as_ref() == Some(&s.trigger) {
+            return true;
+        }
+        let hay = format!("{} {} {} {}", s.app, s.action, trigger_text(&s.trigger), trigger_words(&s.trigger)).to_lowercase();
+        self.words.iter().all(|&word| hay.contains(word))
+    }
+}
+
 /// The column the All shortcuts table is sorted by.
 #[derive(PartialEq, Clone, Copy, Debug)]
 enum SortCol {
@@ -423,20 +445,6 @@ impl AtlasApp {
         });
     }
 
-    fn matches_search(&self, s: &Shortcut) -> bool {
-        let q = self.search.trim().to_lowercase();
-        if q.is_empty() {
-            return true;
-        }
-        if let Some(t) = parse_typed(&q) {
-            if t == s.trigger {
-                return true;
-            }
-        }
-        let hay = format!("{} {} {} {}", s.app, s.action, trigger_text(&s.trigger), trigger_words(&s.trigger)).to_lowercase();
-        q.split_whitespace().all(|w| hay.contains(w))
-    }
-
     fn count(&self, k: Kind) -> usize {
         self.conflicts
             .iter()
@@ -712,13 +720,16 @@ impl AtlasApp {
         });
         ui.add_space(8.0);
         let list = &self.data.shortcuts;
+        // Conflict labels match the full query, including spaces.
+        let search_text = self.search.to_lowercase();
+        let search = ShortcutSearch::new(&search_text);
         let mut visible: Vec<&Conflict> = self
             .conflicts
             .iter()
             .filter(|c| self.include_inactive || c.is_active(list, &|s| self.is_idle(s)))
             .filter(|c| self.show_kind[&c.kind])
             .filter(|c| !(c.kind == Kind::Shared && self.hide_standard && conflicts::is_standard(&c.trigger)))
-            .filter(|c| c.members.iter().any(|&i| self.matches_search(&list[i])) || c.label.to_lowercase().contains(&self.search.to_lowercase()))
+            .filter(|c| c.members.iter().any(|&i| search.matches(&list[i])) || c.label.to_lowercase().contains(&search_text))
             .collect();
         visible.sort_by_key(|c| !c.is_active(list, &|s| self.is_idle(s)));
         if visible.is_empty() {
@@ -1099,13 +1110,15 @@ impl AtlasApp {
         self.refresh_uses();
         let mine = self.my_apps();
         let (scope, only) = (self.scope_filter, self.only_mine);
+        let search_text = self.search.to_lowercase();
+        let search = ShortcutSearch::new(&search_text);
         let mut rows: Vec<&Shortcut> = self
             .data
             .shortcuts
             .iter()
             .filter(|s| scope.keeps(s))
             .filter(|s| !only || is_mine(s, &mine))
-            .filter(|s| self.matches_search(s))
+            .filter(|s| search.matches(s))
             .collect();
         sort_rows(&mut rows, self.sort_col, self.sort_desc);
         let (mut scope_v, mut only_v) = (scope, only);
@@ -2545,6 +2558,18 @@ mod tests {
 
     fn sc(app: &str, action: &str, t: Trigger, scope: Scope) -> Shortcut {
         Shortcut::new(app, action, t, scope, Origin::LiveMenu).bundle(Some(&format!("test.{}", app.to_lowercase())))
+    }
+
+    #[test]
+    fn shortcut_search_matches_exact_triggers_and_falls_back_to_text() {
+        let shortcut = sc("Finder", "New Window", Trigger::combo(CMD, "N"), Scope::App);
+        for input in [" \t ", "  Cmd+N\t", "window  FINDER", "window command"] {
+            let query = input.to_lowercase();
+            assert!(ShortcutSearch::new(&query).matches(&shortcut), "{input:?}");
+        }
+        for query in ["cmd+shift+n", "finder close"] {
+            assert!(!ShortcutSearch::new(query).matches(&shortcut), "{query:?}");
+        }
     }
 
     #[test]
