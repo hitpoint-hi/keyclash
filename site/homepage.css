@@ -219,6 +219,15 @@ figcaption {
   gap: 7px;
   margin-top: 19px;
 }
+.product-hunt-badge {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 20px;
+}
+.product-hunt-badge img {
+  height: auto;
+}
 .dot {
   width: 6px;
   height: 6px;
