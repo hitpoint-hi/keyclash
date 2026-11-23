@@ -87,8 +87,16 @@ fn input_modifiers(modifiers: egui::Modifiers) -> u8 {
     mods
 }
 
-fn is_modifier_key(key: egui::Key) -> bool {
-    matches!(key, egui::Key::ShiftLeft | egui::Key::ShiftRight | egui::Key::ControlLeft | egui::Key::ControlRight | egui::Key::AltLeft | egui::Key::AltRight | egui::Key::SuperLeft | egui::Key::SuperRight | egui::Key::Fn)
+pub(crate) fn modifier_key_bit(key: egui::Key) -> Option<u8> {
+    use egui::Key::*;
+    Some(match key {
+        ShiftLeft | ShiftRight => SHIFT,
+        ControlLeft | ControlRight => CTRL,
+        AltLeft | AltRight => OPT,
+        SuperLeft | SuperRight => CMD,
+        Fn => FN,
+        _ => return None,
+    })
 }
 
 impl KeyboardMap {
@@ -116,7 +124,7 @@ impl KeyboardMap {
             let egui::Event::Key { key, physical_key, pressed: true, repeat, modifiers, .. } = event else { return true };
             let mut mods = input_modifiers(*modifiers) | (held & FN);
             self.observe_modifiers(mods);
-            if is_modifier_key(*key) || physical_key.is_some_and(is_modifier_key) {
+            if modifier_key_bit(*key).is_some() || physical_key.and_then(modifier_key_bit).is_some() {
                 if !repeat {
                     self.selected = None;
                     self.locked = 0;

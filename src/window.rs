@@ -2,6 +2,50 @@
 
 use eframe::egui::{self, Pos2, Rect, Vec2};
 
+#[cfg(target_os = "macos")]
+pub struct LookupModifierEvents {
+    monitor: objc2::rc::Retained<objc2::runtime::AnyObject>,
+    flags: std::rc::Rc<std::cell::RefCell<Vec<(u8, u8)>>>,
+}
+
+#[cfg(target_os = "macos")]
+impl LookupModifierEvents {
+    pub fn start() -> Option<Self> {
+        use objc2_app_kit::{NSEvent, NSEventMask, NSEventModifierFlags};
+        use std::{cell::RefCell, ptr::NonNull, rc::Rc};
+
+        objc2::MainThreadMarker::new()?;
+        let flags = Rc::new(RefCell::new(Vec::new()));
+        let observed = Rc::clone(&flags);
+        let inspect = block2::RcBlock::new(move |event: NonNull<NSEvent>| {
+            // AppKit supplies a live event for the duration of the callback.
+            let input = unsafe { event.as_ref() };
+            if let Some(bit) = crate::keys::keycode_modifier(i64::from(input.keyCode()))
+                && bit != crate::model::FN
+            {
+                let function = if input.modifierFlags().contains(NSEventModifierFlags::Function) { crate::model::FN } else { 0 };
+                observed.borrow_mut().push((bit, function));
+            }
+            event.as_ptr()
+        });
+        // Return each event to AppKit unchanged. Winit omits Fn from its modifier state.
+        let monitor = unsafe { NSEvent::addLocalMonitorForEventsMatchingMask_handler(NSEventMask::FlagsChanged, &inspect) }?;
+        Some(Self { monitor, flags })
+    }
+
+    pub fn take(&self) -> Vec<(u8, u8)> {
+        std::mem::take(&mut *self.flags.borrow_mut())
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl Drop for LookupModifierEvents {
+    fn drop(&mut self) {
+        // The handle comes from the local monitor registration above.
+        unsafe { objc2_app_kit::NSEvent::removeMonitor(&self.monitor) };
+    }
+}
+
 pub fn peek_builder(rect: Rect, wants_focus: bool) -> egui::ViewportBuilder {
     egui::ViewportBuilder::default()
         .with_title(format!("Keyclash — {}", crate::panel::NAME))

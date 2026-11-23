@@ -3,7 +3,7 @@
 use crate::keys::*;
 use crate::model::*;
 use crate::{ax, electron, nib};
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -1126,6 +1126,49 @@ fn json_path_is_system_wide(path: &[String]) -> bool {
     })
 }
 
+pub fn chatgpt_dictation(apps: &[AppInfo]) -> Vec<Shortcut> {
+    const CHATGPT: &str = "com.openai.codex";
+    let Some(app) = apps.iter().find(|app| app.bundle.as_deref() == Some(CHATGPT)) else { return vec![] };
+    let root = std::env::var_os("CODEX_HOME").filter(|path| !path.is_empty()).map(PathBuf::from)
+        .unwrap_or_else(|| home().join(".codex"));
+    let Ok(text) = std::fs::read_to_string(root.join("keybindings.json")) else { return vec![] };
+    chatgpt_dictation_bindings(app, &text)
+}
+
+fn chatgpt_dictation_bindings(app: &AppInfo, text: &str) -> Vec<Shortcut> {
+    let Ok(bindings) = serde_json::from_str::<Vec<serde_json::Value>>(text) else { return vec![] };
+    [
+        ("globalDictationHold", "Hold to dictate", true),
+        ("globalDictationSingleTap", "Toggle dictation", false),
+    ].into_iter().filter_map(|(command, action, hold)| {
+        let key = bindings.iter().find(|binding| binding.get("command").and_then(|name| name.as_str()) == Some(command))?
+            .get("key")?.as_str()?;
+        let trigger = chatgpt_dictation_trigger(key, hold)?;
+        Some(Shortcut::new(&app.name, action, trigger, Scope::Global, Origin::AppSettings)
+            .bundle(app.bundle.as_deref()).detail(format!("keybindings.json › {command} ({key})")))
+    }).collect()
+}
+
+fn chatgpt_dictation_trigger(key: &str, hold: bool) -> Option<Trigger> {
+    let normalized = key.to_ascii_lowercase().replace([' ', '_', '-'], "");
+    let double = match normalized.as_str() {
+        "doubleoption" | "doublealt" | "leftoption+rightoption" | "leftalt+rightalt" => Some(OPT),
+        "doublecommand" | "leftcommand+rightcommand" | "leftcmd+rightcmd" | "leftmeta+rightmeta" => Some(CMD),
+        "doubleshift" | "leftshift+rightshift" => Some(SHIFT),
+        _ => None,
+    };
+    if let Some(mods) = double {
+        return Some(Trigger::ModTap { mods, taps: 2 });
+    }
+    if let Some(mods) = normalized.split('+').try_fold(0, |mods, word| modifier_word(word).map(|bit| mods | bit)) {
+        return Some(if hold { Trigger::ModHold { mods } } else { Trigger::ModTap { mods, taps: 1 } });
+    }
+    match check_lookup(key).ok()? {
+        LookupQuery::Shortcut(trigger @ Trigger::Combo { .. }) => Some(trigger),
+        _ => None,
+    }
+}
+
 /// Apps (Todoist, Notion, Claude) that keep hotkeys as text in a JSON file in
 /// ~/Library/Application Support/<app name>/. Only installed apps are read.
 pub fn json_settings_hotkeys(apps: &[AppInfo]) -> Vec<Shortcut> {
@@ -1162,6 +1205,127 @@ pub fn json_settings_hotkeys(apps: &[AppInfo]) -> Vec<Shortcut> {
         }
     }
     out
+}
+
+const SPACEMAN: &str = "anomaly.spaceman";
+
+fn spaceman_named_workspaces(config: Option<&str>, state: Option<&str>) -> BTreeSet<char> {
+    let mut letters = BTreeSet::new();
+    let mut add = |name: &str| {
+        if let [letter] = name.as_bytes() && letter.is_ascii_alphabetic() {
+            letters.insert(char::from(letter.to_ascii_uppercase()));
+        }
+    };
+    if let Some(config) = config.and_then(|text| text.parse::<toml::Table>().ok())
+        && config.get("version").and_then(toml::Value::as_integer) == Some(1)
+    {
+        let tables = |key: &str| config.get(key).and_then(toml::Value::as_array).into_iter().flatten();
+        let routes = tables("rules").filter(|rule| rule.get("action").and_then(toml::Value::as_str) == Some("route"));
+        for name in tables("workspaces").chain(routes).filter_map(|entry| entry.get("workspace")?.as_str()) {
+            add(name);
+        }
+    }
+    if let Some(state) = state.and_then(|text| serde_json::from_str::<serde_json::Value>(text).ok()) {
+        let entries = |key: &str| state.get(key).and_then(serde_json::Value::as_array).into_iter().flatten();
+        for name in ["active", "previous", "floating"].into_iter().flat_map(entries).filter_map(|entry| entry.get(1)?.as_str()) {
+            add(name);
+        }
+        for (letter, slots) in ('A'..='Z').zip(entries("slots").skip(10)) {
+            if slots.as_array().is_some_and(|slots| !slots.is_empty()) {
+                letters.insert(letter);
+            }
+        }
+    }
+    letters
+}
+
+fn spaceman_defaults(app: &str, version: &str, named_workspaces: &BTreeSet<char>, layout: Option<&crate::layout::Layout>) -> Vec<Shortcut> {
+    if !matches!(version, "0.3.2" | "0.3.3") {
+        return vec![];
+    }
+    let detail = format!("Spaceman {version} hotkey defaults; registration depends on Spaceman's runtime state");
+    let mut out = Vec::new();
+    let mut seen = HashSet::new();
+    let mut collision = false;
+    let mut add = |action: &str, mods: u8, key: &str, fixed_position: bool| {
+        let physical = at_us_position(Trigger::combo(mods, key), layout);
+        let logical = |layout: &crate::layout::Layout| {
+            if layout.keys.values().any(|base| base == key) {
+                return Some(Trigger::combo(mods, key));
+            }
+            shifted_base_in(key, Some(layout)).map(|base| Trigger::combo(mods | SHIFT, base))
+        };
+        let mut trigger = if fixed_position { physical.clone() } else { layout.and_then(logical).unwrap_or_else(|| physical.clone()) };
+        if seen.contains(&trigger) {
+            collision = true;
+            if version == "0.3.3" && matches!(key, "`" | "/" | "-" | "=") {
+                trigger = physical;
+            }
+        }
+        if seen.insert(trigger.clone()) {
+            out.push(Shortcut::new(app, action, trigger, Scope::Global, Origin::BuiltInDefault)
+                .bundle(Some(SPACEMAN)).detail(&detail).estimated(true));
+        }
+    };
+    // Numbered workspaces use physical top-row keys. Named workspaces follow the layout.
+    for (index, digit) in "1234567890".chars().enumerate() {
+        let workspace = index + 1;
+        let key = digit.to_string();
+        add(&format!("Switch to workspace {workspace}"), OPT, &key, true);
+        add(&format!("Move window to workspace {workspace}"), OPT | SHIFT, &key, true);
+    }
+    for letter in named_workspaces {
+        let key = letter.to_string();
+        add(&format!("Switch to workspace {letter}"), OPT, &key, false);
+        add(&format!("Move window to workspace {letter}"), OPT | SHIFT, &key, false);
+    }
+    for (letter, direction) in [('H', "left"), ('J', "down"), ('K', "up"), ('L', "right")] {
+        if !named_workspaces.contains(&letter) {
+            let key = letter.to_string();
+            add(&format!("Focus {direction}"), OPT, &key, false);
+            add(&format!("Move tile {direction}"), OPT | SHIFT, &key, false);
+        }
+    }
+    if !named_workspaces.contains(&'F') {
+        add("Toggle fullscreen layout", OPT | SHIFT, "F", false);
+    }
+    if version == "0.3.3" {
+        add("Toggle floating window", OPT | SHIFT, "Space", true);
+        add("Move workspace to next display", OPT | SHIFT, "Tab", true);
+    }
+    add("Previous workspace on this display", OPT, "Tab", true);
+    for (key, action) in [("`", "Next window in the workspace"), ("/", "Flip the split"), ("-", "Shrink the tile"), ("=", "Grow the tile")] {
+        add(action, OPT, key, false);
+    }
+    if version == "0.3.2" && collision {
+        return vec![];
+    }
+    out
+}
+
+pub fn spaceman_hotkeys(apps: &[AppInfo]) -> Option<(Vec<Shortcut>, SourceNote)> {
+    let app = apps.iter().filter(|app| app.bundle.as_deref() == Some(SPACEMAN)).min_by_key(|app| (!app.running, &app.path))?;
+    let info = read_plist(&Path::new(&app.path).join("Contents/Info.plist"));
+    let version = info.as_ref().and_then(plist::Value::as_dictionary)
+        .and_then(|info| info.get("CFBundleShortVersionString")).and_then(plist::Value::as_string).unwrap_or("unknown");
+    if !matches!(version, "0.3.2" | "0.3.3") {
+        return Some((vec![], SourceNote {
+            name: "Spaceman hotkeys".into(), status: format!("No shortcut definitions for version {version}"), ..Default::default()
+        }));
+    }
+    let root = std::env::var_os("SPACEMAN_APPLICATION_SUPPORT").map(PathBuf::from)
+        .unwrap_or_else(|| home().join("Library/Application Support/Spaceman"));
+    let config_path = std::env::var_os("SPACEMAN_CONFIG").map(PathBuf::from).unwrap_or_else(|| root.join("config.toml"));
+    let config = std::fs::read_to_string(config_path).ok();
+    let state = std::fs::read_to_string(root.join("workspace-state.json")).ok();
+    let named = spaceman_named_workspaces(config.as_deref(), state.as_deref());
+    let shortcuts = crate::layout::with_active(|layout| spaceman_defaults(&app.name, version, &named, layout));
+    let note = SourceNote {
+        name: "Spaceman hotkeys".into(), count: shortcuts.len(), ok: !shortcuts.is_empty(),
+        status: if shortcuts.is_empty() { format!("Version {version}: this keyboard layout has overlapping Spaceman shortcuts") }
+            else { format!("Version {version} defaults and named workspaces") },
+    };
+    Some((shortcuts, note))
 }
 
 /// Hotkeys that apps build in and only store once you change them.
@@ -1612,6 +1776,57 @@ mod tests {
     use super::*;
 
     #[test]
+    fn spaceman_imports_versioned_global_hotkeys() {
+        let empty = BTreeSet::new();
+        let shortcuts = spaceman_defaults("Spaceman", "0.3.2", &empty, None);
+        assert_eq!(shortcuts.len(), 34);
+        assert!(shortcuts.iter().all(|s| s.owner() == SPACEMAN && s.scope == Scope::Global && s.estimated));
+        assert!(shortcuts.iter().any(|s| s.action == "Switch to workspace 10" && s.trigger == Trigger::combo(OPT, "0")));
+        assert!(shortcuts.iter().any(|s| s.action == "Previous workspace on this display" && s.trigger == Trigger::combo(OPT, "Tab")));
+        let shortcuts = spaceman_defaults("Spaceman", "0.3.3", &empty, None);
+        assert_eq!(shortcuts.len(), 36);
+        assert!(shortcuts.iter().any(|s| s.action == "Toggle floating window" && s.trigger == Trigger::combo(OPT | SHIFT, "Space")));
+        assert!(shortcuts.iter().any(|s| s.action == "Move workspace to next display" && s.trigger == Trigger::combo(OPT | SHIFT, "Tab")));
+        assert!(spaceman_defaults("Spaceman", "0.4.0", &empty, None).is_empty());
+        assert!(spaceman_hotkeys(&[]).is_none());
+    }
+
+    #[test]
+    fn spaceman_named_workspaces_override_direction_and_fullscreen_hotkeys() {
+        let config = r#"
+            version = 1
+            [[workspaces]]
+            workspace = "h"
+            monitor = "main"
+            [[rules]]
+            action = "route"
+            bundle_id = "example.app"
+            workspace = "F"
+        "#;
+        let state = r#"{"active":[["Main", "C"],["Secondary", 6]],"previous":[["Main", "J"]]}"#;
+        let named = spaceman_named_workspaces(Some(config), Some(state));
+        assert_eq!(named, BTreeSet::from(['C', 'F', 'H', 'J']));
+        let shortcuts = spaceman_defaults("Spaceman", "0.3.2", &named, None);
+        assert!(shortcuts.iter().any(|s| s.action == "Switch to workspace H" && s.trigger == Trigger::combo(OPT, "H")));
+        assert!(shortcuts.iter().any(|s| s.action == "Move window to workspace F" && s.trigger == Trigger::combo(OPT | SHIFT, "F")));
+        assert!(shortcuts.iter().all(|s| !matches!(s.action.as_str(), "Focus left" | "Move tile down" | "Toggle fullscreen layout")));
+    }
+
+    #[test]
+    fn spaceman_uses_the_physical_punctuation_fallback_when_a_chord_overlaps() {
+        let layout = crate::layout::Layout {
+            id: "test".into(), name: "test".into(),
+            keys: HashMap::from([(26, "7".into()), (44, "△".into())]),
+            shifted: HashMap::from([(26, "/".into())]),
+        };
+        let empty = BTreeSet::new();
+        assert!(spaceman_defaults("Spaceman", "0.3.2", &empty, Some(&layout)).is_empty());
+        let shortcuts = spaceman_defaults("Spaceman", "0.3.3", &empty, Some(&layout));
+        assert!(shortcuts.iter().any(|s| s.action == "Move window to workspace 7" && s.trigger == Trigger::combo(OPT | SHIFT, "7")));
+        assert!(shortcuts.iter().any(|s| s.action == "Flip the split" && s.trigger == Trigger::combo(OPT, "△")));
+    }
+
+    #[test]
     fn disabled_macshot_capture_does_not_block_redo() {
         // MacShot keeps the old capture chord after its settings show "None".
         let mut d = plist::Dictionary::new();
@@ -1660,6 +1875,49 @@ mod tests {
         assert_eq!(hotkey_name("hotkeyQuickCapture"), "Quick Capture");
         assert_eq!(hotkey_name("hotkey"), "Main hotkey");
         assert_eq!(hotkey_name("KeyboardShortcuts_toggleLauncher"), "Toggle Launcher");
+    }
+
+    #[test]
+    fn chatgpt_dictation_aliases_keep_the_configured_gesture() {
+        for (key, mods) in [
+            ("Left Option + Right Option", OPT), ("Double-Alt", OPT), ("left_alt+right_alt", OPT),
+            ("leftcommand+rightcommand", CMD), ("leftcmd+rightcmd", CMD), ("leftmeta+rightmeta", CMD),
+            ("leftshift+rightshift", SHIFT),
+        ] {
+            assert_eq!(chatgpt_dictation_trigger(key, true), Some(Trigger::ModTap { mods, taps: 2 }), "{key}");
+        }
+        assert_eq!(chatgpt_dictation_trigger("Fn", true), Some(Trigger::ModHold { mods: FN }));
+        assert_eq!(chatgpt_dictation_trigger("Ctrl+Fn", true), Some(Trigger::ModHold { mods: CTRL | FN }));
+        assert_eq!(chatgpt_dictation_trigger("Right_Control", false), Some(Trigger::ModTap { mods: CTRL, taps: 1 }));
+        assert_eq!(chatgpt_dictation_trigger("Control+Space", false), Some(Trigger::combo(CTRL, "Space")));
+    }
+
+    #[test]
+    fn chatgpt_keymap_exposes_configured_dictation_actions_only() {
+        let app = AppInfo { name: "ChatGPT".into(), bundle: Some("com.openai.codex".into()), ..Default::default() };
+        let shortcuts = chatgpt_dictation_bindings(&app, r#"[
+            {"command":"globalDictationHold","key":"LeftControl"},
+            {"command":"globalDictationSingleTap","key":"RightOption"},
+            {"command":"composer.toggleDictation","key":"Ctrl+D"}
+        ]"#);
+        assert_eq!(shortcuts.len(), 2);
+        assert_eq!(shortcuts[0].action, "Hold to dictate");
+        assert_eq!(shortcuts[0].trigger, Trigger::ModHold { mods: CTRL });
+        assert_eq!(shortcuts[0].scope, Scope::Global);
+        assert_eq!(shortcuts[0].bundle.as_deref(), Some("com.openai.codex"));
+        assert_eq!(shortcuts[1].action, "Toggle dictation");
+        assert_eq!(shortcuts[1].trigger, Trigger::ModTap { mods: OPT, taps: 1 });
+        assert!(chatgpt_dictation_bindings(&app, r#"[
+            {"command":"globalDictationHold","key":null},
+            {"command":"globalDictationSingleTap","key":"unsupported hotkey"}
+        ]"#).is_empty());
+        assert!(chatgpt_dictation_bindings(&app, "{}").is_empty());
+        let toggle = chatgpt_dictation_bindings(&app, r#"[
+            {"command":"globalDictationHold","key":null},
+            {"command":"globalDictationSingleTap","key":"RightControl"}
+        ]"#);
+        assert_eq!(toggle.len(), 1);
+        assert_eq!(toggle[0].trigger, Trigger::ModTap { mods: CTRL, taps: 1 });
     }
 
     #[test]

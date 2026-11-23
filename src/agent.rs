@@ -5,7 +5,7 @@
 
 use crate::conflicts::{self, Conflict, Kind};
 use crate::fix::{fix_for, free_keys_near, used_triggers};
-use crate::keys::{check_typed, modifier_word, trigger_text, typed_text};
+use crate::keys::{LookupQuery, check_lookup, check_typed, mod_symbols, modifier_text, modifier_word, trigger_text, typed_text};
 use crate::model::*;
 use crate::remap;
 use crate::scan::{self, ScanResult};
@@ -270,7 +270,7 @@ impl Session {
             "list_shortcuts" => {
                 let app = arg_str(args, "app").map(str::to_lowercase);
                 let text = arg_str(args, "text").map(str::to_lowercase);
-                let keys = arg_str(args, "keys").map(check_typed).transpose()?;
+                let keys = arg_str(args, "keys").map(check_lookup).transpose()?;
                 let scope = arg_str(args, "works");
                 let limit = arg_usize(args, "limit", 100);
                 let offset = arg_usize(args, "offset", 0);
@@ -280,7 +280,7 @@ impl Session {
                         let s = &list[i];
                         app.as_ref().is_none_or(|a| s.app.to_lowercase().contains(a) || s.bundle.as_deref().is_some_and(|b| b.to_lowercase() == *a))
                             && text.as_ref().is_none_or(|t| s.action.to_lowercase().contains(t))
-                            && keys.as_ref().is_none_or(|k| &s.trigger == k)
+                            && keys.as_ref().is_none_or(|query| query.matches(&s.trigger))
                             && scope.is_none_or(|w| works(s) == w)
                     })
                     .collect();
@@ -288,11 +288,11 @@ impl Session {
                 Ok(json!({ "total": hits.len(), "offset": offset, "shortcuts": rows }))
             }
             "lookup" => {
-                let t = check_typed(need_str(args, "keys")?)?;
+                let query = check_lookup(need_str(args, "keys")?)?;
                 let used = used_triggers(list);
-                let users: Vec<Value> = list.iter().filter(|s| s.trigger == t).map(|s| shortcut_json(s, None)).collect();
-                let also: Vec<Value> = match &t {
-                    Trigger::Combo { key, mods } => {
+                let users: Vec<Value> = list.iter().filter(|s| query.matches(&s.trigger)).map(|s| shortcut_json(s, None)).collect();
+                let also: Vec<Value> = match &query {
+                    LookupQuery::Shortcut(Trigger::Combo { key, mods }) => {
                         let mut seen = HashSet::new();
                         list.iter()
                             .filter(|s| matches!(&s.trigger, Trigger::Combo { key: k, mods: m } if k == key && m != mods))
@@ -302,13 +302,20 @@ impl Session {
                     }
                     _ => vec![],
                 };
+                let (keys, typed, free_with_same_modifiers) = match &query {
+                    LookupQuery::Shortcut(trigger) => (
+                        trigger_text(trigger), typed_text(trigger),
+                        free_keys_near(trigger, &used, 8).iter().map(keys_json).collect::<Vec<_>>(),
+                    ),
+                    LookupQuery::Modifiers(mods) => (mod_symbols(*mods).concat(), modifier_text(*mods), Vec::new()),
+                };
                 Ok(json!({
-                    "keys": trigger_text(&t),
-                    "typed": typed_text(&t),
-                    "free": !used.contains(&t),
+                    "keys": keys,
+                    "typed": typed,
+                    "free": !used.iter().any(|trigger| query.matches(trigger)),
                     "used_by": users,
                     "same_key_other_modifiers": also,
-                    "free_with_same_modifiers": free_keys_near(&t, &used, 8).iter().map(keys_json).collect::<Vec<_>>(),
+                    "free_with_same_modifiers": free_with_same_modifiers,
                 }))
             }
             "free_keys" => {
@@ -583,6 +590,27 @@ mod tests {
         assert_eq!(omni["keyclash_can_change"], "OmniWM config file");
         let rect = c["members"].as_array().unwrap().iter().find(|m| m["app"] == "Rectangle").unwrap();
         assert!(rect["how_to_change"].as_str().unwrap().contains("Rectangle"));
+    }
+
+    #[test]
+    fn modifier_lookup_and_list_use_the_same_exact_modifier_set() {
+        let mut s = session(vec![
+            Shortcut::new("ChatGPT", "Hold to dictate", Trigger::ModHold { mods: CTRL }, Scope::Global, Origin::AppSettings),
+            Shortcut::new("ChatGPT", "Toggle dictation", Trigger::ModTap { mods: CTRL, taps: 1 }, Scope::Global, Origin::AppSettings),
+            Shortcut::new("Wispr Flow", "Command mode", Trigger::ModHold { mods: CTRL | FN }, Scope::Global, Origin::AppSettings),
+        ]);
+        let args = json!({ "keys": "ctrl" });
+        let result = s.call("lookup", &args).unwrap();
+        assert_eq!(result["typed"], "ctrl");
+        assert_eq!(result["free"], false);
+        assert_eq!(result["used_by"].as_array().unwrap().len(), 2);
+        assert!(result["used_by"].as_array().unwrap().iter().all(|row| row["app"] == "ChatGPT"));
+        let list = s.call("list_shortcuts", &args).unwrap();
+        assert_eq!(list["total"], 2);
+        assert!(list["shortcuts"].as_array().unwrap().iter().all(|row| row["app"] == "ChatGPT"));
+        let press = s.call("lookup", &json!({ "keys": "press ctrl" })).unwrap();
+        assert_eq!(press["used_by"].as_array().unwrap().len(), 1);
+        assert_eq!(press["used_by"][0]["action"], "Toggle dictation");
     }
 
     #[test]
