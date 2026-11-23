@@ -1126,6 +1126,39 @@ fn json_path_is_system_wide(path: &[String]) -> bool {
     })
 }
 
+pub fn chatgpt_dictation(apps: &[AppInfo]) -> Vec<Shortcut> {
+    const CHATGPT: &str = "com.openai.codex";
+    let Some(app) = apps.iter().find(|app| app.bundle.as_deref() == Some(CHATGPT)) else { return vec![] };
+    let root = std::env::var_os("CODEX_HOME").filter(|path| !path.is_empty()).map(PathBuf::from)
+        .unwrap_or_else(|| home().join(".codex"));
+    let Ok(text) = std::fs::read_to_string(root.join("keybindings.json")) else { return vec![] };
+    chatgpt_dictation_bindings(app, &text)
+}
+
+fn chatgpt_dictation_bindings(app: &AppInfo, text: &str) -> Vec<Shortcut> {
+    let Ok(bindings) = serde_json::from_str::<Vec<serde_json::Value>>(text) else { return vec![] };
+    [
+        ("globalDictationHold", "Hold to dictate", true),
+        ("globalDictationSingleTap", "Toggle dictation", false),
+    ].into_iter().filter_map(|(command, action, hold)| {
+        let key = bindings.iter().find(|binding| binding.get("command").and_then(|name| name.as_str()) == Some(command))?
+            .get("key")?.as_str()?;
+        let trigger = match key.trim().to_ascii_lowercase().as_str() {
+            "doubleoption" => Trigger::ModTap { mods: OPT, taps: 2 },
+            "doublecommand" => Trigger::ModTap { mods: CMD, taps: 2 },
+            "doubleshift" => Trigger::ModTap { mods: SHIFT, taps: 2 },
+            _ => match check_lookup(key).ok()? {
+                LookupQuery::Shortcut(trigger @ Trigger::Combo { .. }) => trigger,
+                LookupQuery::Modifiers(mods) if hold => Trigger::ModHold { mods },
+                LookupQuery::Modifiers(mods) => Trigger::ModTap { mods, taps: 1 },
+                _ => return None,
+            },
+        };
+        Some(Shortcut::new(&app.name, action, trigger, Scope::Global, Origin::AppSettings)
+            .bundle(app.bundle.as_deref()).detail(format!("keybindings.json › {command} ({key})")))
+    }).collect()
+}
+
 /// Apps (Todoist, Notion, Claude) that keep hotkeys as text in a JSON file in
 /// ~/Library/Application Support/<app name>/. Only installed apps are read.
 pub fn json_settings_hotkeys(apps: &[AppInfo]) -> Vec<Shortcut> {
@@ -1832,6 +1865,27 @@ mod tests {
         assert_eq!(hotkey_name("hotkeyQuickCapture"), "Quick Capture");
         assert_eq!(hotkey_name("hotkey"), "Main hotkey");
         assert_eq!(hotkey_name("KeyboardShortcuts_toggleLauncher"), "Toggle Launcher");
+    }
+
+    #[test]
+    fn chatgpt_keymap_exposes_configured_dictation_actions_only() {
+        let app = AppInfo { name: "ChatGPT".into(), bundle: Some("com.openai.codex".into()), ..Default::default() };
+        let shortcuts = chatgpt_dictation_bindings(&app, r#"[
+            {"command":"globalDictationHold","key":"LeftControl"},
+            {"command":"globalDictationSingleTap","key":"RightOption"},
+            {"command":"composer.toggleDictation","key":"Ctrl+D"}
+        ]"#);
+        assert_eq!(shortcuts.len(), 2);
+        assert_eq!(shortcuts[0].action, "Hold to dictate");
+        assert_eq!(shortcuts[0].trigger, Trigger::ModHold { mods: CTRL });
+        assert_eq!(shortcuts[0].scope, Scope::Global);
+        assert_eq!(shortcuts[0].bundle.as_deref(), Some("com.openai.codex"));
+        assert_eq!(shortcuts[1].action, "Toggle dictation");
+        assert_eq!(shortcuts[1].trigger, Trigger::ModTap { mods: OPT, taps: 1 });
+        assert!(chatgpt_dictation_bindings(&app, r#"[
+            {"command":"globalDictationHold","key":null},
+            {"command":"globalDictationSingleTap","key":"unsupported hotkey"}
+        ]"#).is_empty());
     }
 
     #[test]

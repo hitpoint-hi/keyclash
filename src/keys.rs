@@ -450,6 +450,7 @@ pub fn trigger_words(t: &Trigger) -> String {
 /// What a typed lookup holds: the keys it names, the words that are not keys, and the result.
 struct Typed {
     trigger: Option<Trigger>,
+    modifiers_only: bool,
     /// Words that are not a modifier, "double", "hold", or a known key name.
     unknown: Vec<String>,
     /// Every key the text names. More than one is an error in the lookup.
@@ -477,7 +478,7 @@ pub fn is_key_word(raw: &str) -> bool {
 }
 
 fn scan_typed(input: &str) -> Typed {
-    let mut out = Typed { trigger: None, unknown: Vec::new(), keys: Vec::new() };
+    let mut out = Typed { trigger: None, modifiers_only: false, unknown: Vec::new(), keys: Vec::new() };
     let s = input.trim();
     if s.is_empty() {
         return out;
@@ -558,6 +559,7 @@ fn scan_typed(input: &str) -> Typed {
             }
         }
     }
+    out.modifiers_only = key.is_none() && mods != 0 && !hold && taps == 0;
     out.trigger = if let Some(k) = key {
         Some(clean_trigger(mods, k))
     } else if mods == 0 {
@@ -565,7 +567,7 @@ fn scan_typed(input: &str) -> Typed {
     } else if hold {
         Some(Trigger::ModHold { mods })
     } else {
-        Some(Trigger::ModTap { mods, taps: taps.max(2) })
+        Some(Trigger::ModTap { mods, taps: if taps == 0 { 2 } else { taps } })
     };
     out
 }
@@ -578,6 +580,30 @@ pub fn parse_typed(input: &str) -> Option<Trigger> {
 
 /// Parse a typed lookup strictly. The error is a sentence for the person, and empty for empty input.
 pub fn check_typed(input: &str) -> Result<Trigger, String> {
+    checked_input(input).map(|(trigger, _)| trigger)
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum LookupQuery {
+    Shortcut(Trigger),
+    Modifiers(u8),
+}
+
+impl LookupQuery {
+    pub fn matches(&self, trigger: &Trigger) -> bool {
+        match self {
+            Self::Shortcut(exact) => exact == trigger,
+            Self::Modifiers(mods) => trigger.bare_modifier() == Some(*mods),
+        }
+    }
+}
+
+pub fn check_lookup(input: &str) -> Result<LookupQuery, String> {
+    let (trigger, modifiers_only) = checked_input(input)?;
+    Ok(if modifiers_only { LookupQuery::Modifiers(trigger.mods()) } else { LookupQuery::Shortcut(trigger) })
+}
+
+fn checked_input(input: &str) -> Result<(Trigger, bool), String> {
     if input.trim().is_empty() {
         return Err(String::new());
     }
@@ -589,23 +615,29 @@ pub fn check_typed(input: &str) -> Result<Trigger, String> {
     if t.keys.len() > 1 {
         return Err(format!("A shortcut has one key. This text names {}.", t.keys.join(" and ")));
     }
-    t.trigger.ok_or_else(|| "Add a key or a modifier key, for example cmd t or double option.".to_string())
+    t.trigger.map(|trigger| (trigger, t.modifiers_only))
+        .ok_or_else(|| "Add a key or a modifier key, for example cmd t or double option.".to_string())
+}
+
+pub fn modifier_text(mods: u8) -> String {
+    [(CTRL, "ctrl"), (OPT, "opt"), (SHIFT, "shift"), (CMD, "cmd"), (FN, "fn")]
+        .into_iter().filter_map(|(bit, word)| (mods & bit != 0).then_some(word)).collect::<Vec<_>>().join(" ")
 }
 
 /// The words to type for a trigger in the lookup box: "shift cmd t", "double opt", "hold fn".
 pub fn typed_text(t: &Trigger) -> String {
-    let m = t.mods();
-    let mut w: Vec<String> = [(CTRL, "ctrl"), (OPT, "opt"), (SHIFT, "shift"), (CMD, "cmd"), (FN, "fn")]
-        .iter()
-        .filter(|(b, _)| m & b != 0)
-        .map(|(_, s)| s.to_string())
-        .collect();
+    let mods = modifier_text(t.mods());
     match t {
-        Trigger::Combo { key, .. } => w.push(key.to_lowercase().chars().filter(|c| !c.is_whitespace()).collect()),
-        Trigger::ModTap { taps, .. } => w.insert(0, if *taps >= 3 { "triple" } else { "double" }.into()),
-        Trigger::ModHold { .. } => w.insert(0, "hold".into()),
+        Trigger::Combo { key, .. } => {
+            let key: String = key.to_lowercase().chars().filter(|c| !c.is_whitespace()).collect();
+            if mods.is_empty() { key } else { format!("{mods} {key}") }
+        }
+        Trigger::ModTap { taps, .. } => {
+            let gesture = match taps { 1 => "press", 2 | 0 => "double", _ => "triple" };
+            format!("{gesture} {mods}")
+        }
+        Trigger::ModHold { .. } => format!("hold {mods}"),
     }
-    w.join(" ")
 }
 
 #[cfg(test)]
@@ -644,6 +676,20 @@ mod tests {
     }
 
     #[test]
+    fn bare_modifier_lookup_matches_only_the_selected_modifier_set() {
+        let query = check_lookup("ctrl").unwrap();
+        let tap = Trigger::ModTap { mods: CTRL, taps: 1 };
+        let hold = Trigger::ModHold { mods: CTRL };
+        assert_eq!(query, LookupQuery::Modifiers(CTRL));
+        assert!(query.matches(&tap));
+        assert!(query.matches(&hold));
+        assert!(!query.matches(&Trigger::ModHold { mods: CTRL | FN }));
+        assert!(!query.matches(&Trigger::combo(CTRL, "C")));
+        assert!(check_lookup("press ctrl").unwrap().matches(&tap));
+        assert!(!check_lookup("press ctrl").unwrap().matches(&hold));
+    }
+
+    #[test]
     fn typed_text_reads_back() {
         for t in [
             Trigger::combo(CMD | SHIFT, "T"),
@@ -653,6 +699,7 @@ mod tests {
             Trigger::combo(CMD, "-"),
             Trigger::combo(OPT, "Page Down"),
             Trigger::combo(CTRL | FN, "F"),
+            Trigger::ModTap { mods: CTRL, taps: 1 },
             Trigger::ModTap { mods: OPT, taps: 2 },
             Trigger::ModHold { mods: FN },
         ] {
