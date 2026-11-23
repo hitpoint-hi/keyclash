@@ -87,7 +87,7 @@ fn input_modifiers(modifiers: egui::Modifiers) -> u8 {
     mods
 }
 
-fn is_modifier_key(key: egui::Key) -> bool {
+pub(crate) fn is_modifier_key(key: egui::Key) -> bool {
     matches!(key, egui::Key::ShiftLeft | egui::Key::ShiftRight | egui::Key::ControlLeft | egui::Key::ControlRight | egui::Key::AltLeft | egui::Key::AltRight | egui::Key::SuperLeft | egui::Key::SuperRight | egui::Key::Fn)
 }
 

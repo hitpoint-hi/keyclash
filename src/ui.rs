@@ -42,6 +42,21 @@ pub fn keycaps(ui: &mut egui::Ui, t: &Trigger, size: f32) {
     response.response.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Group, ui.is_enabled(), trigger_words(t)));
 }
 
+fn take_recorded_key(events: &mut Vec<egui::Event>) -> Option<(egui::Key, egui::Modifiers)> {
+    let mut got = None;
+    events.retain(|event| match event {
+        egui::Event::Key { key, physical_key, pressed: true, modifiers, .. } => {
+            if !crate::keyboard::is_modifier_key(*key) && !physical_key.is_some_and(crate::keyboard::is_modifier_key) {
+                got = Some((*key, *modifiers));
+            }
+            false
+        }
+        egui::Event::Text(_) => false,
+        _ => true,
+    });
+    got
+}
+
 #[derive(PartialEq, Clone, Copy)]
 enum Tab {
     Keyboard,
@@ -862,18 +877,7 @@ impl AtlasApp {
                 // Hold the modifiers, then press the key. Recording stays on, so you can try
                 // another combination; Done or Esc (alone) stops it.
                 let held = crate::hotkey::current_mods();
-                let (got, egui_mods) = ui.ctx().input_mut(|i| {
-                    let mut got = None;
-                    i.events.retain(|e| match e {
-                        egui::Event::Key { key, pressed: true, modifiers, .. } => {
-                            got = Some((*key, *modifiers));
-                            false
-                        }
-                        egui::Event::Text(_) => false,
-                        _ => true,
-                    });
-                    (got, i.modifiers)
-                });
+                let (got, egui_mods) = ui.ctx().input_mut(|i| (take_recorded_key(&mut i.events), i.modifiers));
                 let mut mods = held;
                 for (on, bit) in [(egui_mods.ctrl, CTRL), (egui_mods.alt, OPT), (egui_mods.shift, SHIFT), (egui_mods.mac_cmd || egui_mods.command, CMD)] {
                     if on {
@@ -2558,6 +2562,50 @@ mod tests {
 
     fn sc(app: &str, action: &str, t: Trigger, scope: Scope) -> Shortcut {
         Shortcut::new(app, action, t, scope, Origin::LiveMenu).bundle(Some(&format!("test.{}", app.to_lowercase())))
+    }
+
+    fn recorded_key_event(key: egui::Key, physical_key: Option<egui::Key>, modifiers: egui::Modifiers) -> egui::Event {
+        egui::Event::Key { key, physical_key, pressed: true, repeat: false, modifiers }
+    }
+
+    #[test]
+    fn recorder_ignores_standalone_modifier_events() {
+        use egui::Key;
+
+        for key in [Key::ControlLeft, Key::ControlRight, Key::AltLeft, Key::AltRight, Key::ShiftLeft, Key::ShiftRight, Key::SuperLeft, Key::SuperRight, Key::Fn] {
+            for (logical, physical) in [(key, None), (Key::A, Some(key)), (key, Some(Key::A))] {
+                let mut events = vec![recorded_key_event(logical, physical, egui::Modifiers::CTRL)];
+                assert_eq!(take_recorded_key(&mut events), None, "logical={logical:?}, physical={physical:?}");
+                assert!(events.is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn recorder_keeps_primary_key_when_modifiers_follow_it() {
+        use egui::Key;
+
+        let mut events = vec![
+            recorded_key_event(Key::ControlLeft, Some(Key::ControlLeft), egui::Modifiers::CTRL),
+            recorded_key_event(Key::A, Some(Key::A), egui::Modifiers::CTRL),
+            egui::Event::Text("a".into()),
+            recorded_key_event(Key::ShiftLeft, Some(Key::ShiftLeft), egui::Modifiers::CTRL | egui::Modifiers::SHIFT),
+        ];
+        assert_eq!(take_recorded_key(&mut events), Some((Key::A, egui::Modifiers::CTRL)));
+        assert!(events.is_empty());
+    }
+
+    #[test]
+    fn recorder_preserves_escape_repeat_and_release_events() {
+        use egui::Key;
+
+        let release = egui::Event::Key { key: Key::A, physical_key: Some(Key::A), pressed: false, repeat: false, modifiers: egui::Modifiers::NONE };
+        let mut events = vec![
+            egui::Event::Key { key: Key::Escape, physical_key: Some(Key::Escape), pressed: true, repeat: true, modifiers: egui::Modifiers::NONE },
+            release.clone(),
+        ];
+        assert_eq!(take_recorded_key(&mut events), Some((Key::Escape, egui::Modifiers::NONE)));
+        assert_eq!(events, vec![release]);
     }
 
     #[test]
