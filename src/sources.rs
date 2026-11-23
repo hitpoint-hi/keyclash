@@ -1143,20 +1143,30 @@ fn chatgpt_dictation_bindings(app: &AppInfo, text: &str) -> Vec<Shortcut> {
     ].into_iter().filter_map(|(command, action, hold)| {
         let key = bindings.iter().find(|binding| binding.get("command").and_then(|name| name.as_str()) == Some(command))?
             .get("key")?.as_str()?;
-        let trigger = match key.trim().to_ascii_lowercase().as_str() {
-            "doubleoption" => Trigger::ModTap { mods: OPT, taps: 2 },
-            "doublecommand" => Trigger::ModTap { mods: CMD, taps: 2 },
-            "doubleshift" => Trigger::ModTap { mods: SHIFT, taps: 2 },
-            _ => match check_lookup(key).ok()? {
-                LookupQuery::Shortcut(trigger @ Trigger::Combo { .. }) => trigger,
-                LookupQuery::Modifiers(mods) if hold => Trigger::ModHold { mods },
-                LookupQuery::Modifiers(mods) => Trigger::ModTap { mods, taps: 1 },
-                _ => return None,
-            },
-        };
+        let trigger = chatgpt_dictation_trigger(key, hold)?;
         Some(Shortcut::new(&app.name, action, trigger, Scope::Global, Origin::AppSettings)
             .bundle(app.bundle.as_deref()).detail(format!("keybindings.json › {command} ({key})")))
     }).collect()
+}
+
+fn chatgpt_dictation_trigger(key: &str, hold: bool) -> Option<Trigger> {
+    let normalized = key.to_ascii_lowercase().replace([' ', '_', '-'], "");
+    let double = match normalized.as_str() {
+        "doubleoption" | "doublealt" | "leftoption+rightoption" | "leftalt+rightalt" => Some(OPT),
+        "doublecommand" | "leftcommand+rightcommand" | "leftcmd+rightcmd" | "leftmeta+rightmeta" => Some(CMD),
+        "doubleshift" | "leftshift+rightshift" => Some(SHIFT),
+        _ => None,
+    };
+    if let Some(mods) = double {
+        return Some(Trigger::ModTap { mods, taps: 2 });
+    }
+    if let Some(mods) = normalized.split('+').try_fold(0, |mods, word| modifier_word(word).map(|bit| mods | bit)) {
+        return Some(if hold { Trigger::ModHold { mods } } else { Trigger::ModTap { mods, taps: 1 } });
+    }
+    match check_lookup(key).ok()? {
+        LookupQuery::Shortcut(trigger @ Trigger::Combo { .. }) => Some(trigger),
+        _ => None,
+    }
 }
 
 /// Apps (Todoist, Notion, Claude) that keep hotkeys as text in a JSON file in
@@ -1868,6 +1878,21 @@ mod tests {
     }
 
     #[test]
+    fn chatgpt_dictation_aliases_keep_the_configured_gesture() {
+        for (key, mods) in [
+            ("Left Option + Right Option", OPT), ("Double-Alt", OPT), ("left_alt+right_alt", OPT),
+            ("leftcommand+rightcommand", CMD), ("leftcmd+rightcmd", CMD), ("leftmeta+rightmeta", CMD),
+            ("leftshift+rightshift", SHIFT),
+        ] {
+            assert_eq!(chatgpt_dictation_trigger(key, true), Some(Trigger::ModTap { mods, taps: 2 }), "{key}");
+        }
+        assert_eq!(chatgpt_dictation_trigger("Fn", true), Some(Trigger::ModHold { mods: FN }));
+        assert_eq!(chatgpt_dictation_trigger("Ctrl+Fn", true), Some(Trigger::ModHold { mods: CTRL | FN }));
+        assert_eq!(chatgpt_dictation_trigger("Right_Control", false), Some(Trigger::ModTap { mods: CTRL, taps: 1 }));
+        assert_eq!(chatgpt_dictation_trigger("Control+Space", false), Some(Trigger::combo(CTRL, "Space")));
+    }
+
+    #[test]
     fn chatgpt_keymap_exposes_configured_dictation_actions_only() {
         let app = AppInfo { name: "ChatGPT".into(), bundle: Some("com.openai.codex".into()), ..Default::default() };
         let shortcuts = chatgpt_dictation_bindings(&app, r#"[
@@ -1886,6 +1911,13 @@ mod tests {
             {"command":"globalDictationHold","key":null},
             {"command":"globalDictationSingleTap","key":"unsupported hotkey"}
         ]"#).is_empty());
+        assert!(chatgpt_dictation_bindings(&app, "{}").is_empty());
+        let toggle = chatgpt_dictation_bindings(&app, r#"[
+            {"command":"globalDictationHold","key":null},
+            {"command":"globalDictationSingleTap","key":"RightControl"}
+        ]"#);
+        assert_eq!(toggle.len(), 1);
+        assert_eq!(toggle[0].trigger, Trigger::ModTap { mods: CTRL, taps: 1 });
     }
 
     #[test]

@@ -55,25 +55,33 @@ struct LookupRecorder {
 }
 
 impl LookupRecorder {
-    fn capture(&mut self, events: &mut Vec<egui::Event>) -> Option<RecordedLookup> {
+    fn capture(&mut self, events: &mut Vec<egui::Event>, native_mods: u8, fn_flags: &[(u8, u8)]) -> Option<RecordedLookup> {
         let mut result = None;
+        let fn_held = native_mods & FN;
+        if fn_flags.is_empty() && let Some(pending) = self.pending.as_mut() {
+            *pending |= fn_held;
+        }
+        let mut fn_flags = fn_flags.iter();
         events.retain(|event| match event {
             egui::Event::Key { key, physical_key, pressed, repeat, modifiers, .. } => {
                 if let Some((key, bit)) = physical_key.iter().chain(std::iter::once(key))
                     .find_map(|key| crate::keyboard::modifier_key_bit(*key).map(|bit| (*key, bit)))
                 {
+                    let function = if bit == FN { FN } else {
+                        fn_flags.find(|(modifier, _)| *modifier == bit).map_or(fn_held, |&(_, flags)| flags)
+                    };
                     if *pressed && !repeat {
                         if self.down.is_empty() {
                             self.pending = Some(0);
                         }
                         self.down.insert(key);
                         if let Some(pending) = self.pending.as_mut() {
-                            *pending |= bit;
+                            *pending |= bit | function;
                         }
                     } else if !pressed && self.down.remove(&key) && self.down.is_empty()
                         && let Some(mods) = self.pending.take()
                     {
-                        result = Some(RecordedLookup::Modifiers(mods));
+                        result = Some(RecordedLookup::Modifiers(mods | function));
                     }
                 } else if *pressed {
                     self.pending = None;
@@ -193,6 +201,8 @@ pub struct AtlasApp {
     lookup_sel_key: Option<String>,
     recording: bool,
     lookup_recorder: LookupRecorder,
+    #[cfg(target_os = "macos")]
+    lookup_modifier_events: Option<crate::window::LookupModifierEvents>,
     scope_filter: ScopeFilter,
     sort_col: SortCol,
     sort_desc: bool,
@@ -290,6 +300,8 @@ impl AtlasApp {
             lookup_sel_key: None,
             recording: false,
             lookup_recorder: LookupRecorder::default(),
+            #[cfg(target_os = "macos")]
+            lookup_modifier_events: None,
             scope_filter: ScopeFilter::All,
             sort_col: SortCol::Keys,
             sort_desc: false,
@@ -907,13 +919,21 @@ impl AtlasApp {
                 if ui.add(egui::Button::new(medium(rec)).selected(self.recording).min_size(egui::vec2(76.0, 34.0))).clicked() {
                     self.recording = !self.recording;
                     self.lookup_recorder = LookupRecorder::default();
+                    #[cfg(target_os = "macos")]
+                    {
+                        self.lookup_modifier_events = self.recording.then(crate::window::LookupModifierEvents::start).flatten();
+                    }
                     // Keys go to the recorder, not the text box.
                     ui.ctx().memory_mut(|m| m.stop_text_input());
                 }
             });
             if self.recording {
                 let held = crate::hotkey::current_mods();
-                let (got, egui_mods) = ui.ctx().input_mut(|i| (self.lookup_recorder.capture(&mut i.events), i.modifiers));
+                #[cfg(target_os = "macos")]
+                let fn_flags = self.lookup_modifier_events.as_ref().map_or_else(Vec::new, |monitor| monitor.take());
+                #[cfg(not(target_os = "macos"))]
+                let fn_flags = [];
+                let (got, egui_mods) = ui.ctx().input_mut(|i| (self.lookup_recorder.capture(&mut i.events, held, &fn_flags), i.modifiers));
                 let mut mods = held;
                 for (on, bit) in [(egui_mods.ctrl, CTRL), (egui_mods.alt, OPT), (egui_mods.shift, SHIFT), (egui_mods.mac_cmd || egui_mods.command, CMD)] {
                     if on {
@@ -930,6 +950,10 @@ impl AtlasApp {
                     }
                     if key == egui::Key::Escape && mods == 0 {
                         self.recording = false;
+                        #[cfg(target_os = "macos")]
+                        {
+                            self.lookup_modifier_events = None;
+                        }
                     } else {
                         // egui calls the forward-delete key "Delete" and the delete key "Backspace".
                         let name = if key == egui::Key::Delete { "forwarddelete" } else { key.name() };
@@ -2506,6 +2530,11 @@ impl eframe::App for AtlasApp {
     fn raw_input_hook(&mut self, ctx: &egui::Context, input: &mut egui::RawInput) {
         if input.viewport_id == egui::ViewportId::ROOT && self.tab != Tab::Lookup {
             self.lookup_recorder = LookupRecorder::default();
+            self.recording = false;
+            #[cfg(target_os = "macos")]
+            {
+                self.lookup_modifier_events = None;
+            }
         }
         input.events.retain(|event| {
             if matches!(event, egui::Event::Key { key: egui::Key::Comma, pressed: true, modifiers, .. } if modifiers.matches_logically(egui::Modifiers::COMMAND)) {
@@ -2630,12 +2659,46 @@ mod tests {
             for (logical, physical) in [(key, None), (Key::A, Some(key)), (key, Some(Key::A))] {
                 let mut recorder = LookupRecorder::default();
                 let mut press = vec![recorded_key_event(logical, physical, true, egui::Modifiers::NONE)];
-                assert_eq!(recorder.capture(&mut press), None);
+                assert_eq!(recorder.capture(&mut press, 0, &[]), None);
                 assert!(press.is_empty());
                 let mut release = vec![recorded_key_event(logical, physical, false, egui::Modifiers::NONE)];
-                assert_eq!(recorder.capture(&mut release), Some(RecordedLookup::Modifiers(modifier)));
+                assert_eq!(recorder.capture(&mut release, 0, &[]), Some(RecordedLookup::Modifiers(modifier)));
             }
         }
+    }
+
+    #[test]
+    fn modifier_recording_includes_fn_when_egui_omits_its_event() {
+        use egui::{Key, Modifiers};
+        let mut recorder = LookupRecorder::default();
+        let mut press = vec![recorded_key_event(Key::ControlLeft, None, true, Modifiers::CTRL)];
+        assert_eq!(recorder.capture(&mut press, CTRL | FN, &[]), None);
+        let mut release = vec![recorded_key_event(Key::ControlLeft, None, false, Modifiers::NONE)];
+        let Some(RecordedLookup::Modifiers(mods)) = recorder.capture(&mut release, 0, &[]) else {
+            panic!("the modifier lookup should complete on release");
+        };
+        let query = check_lookup(&modifier_text(mods)).unwrap();
+        assert!(query.matches(&Trigger::ModHold { mods: CTRL | FN }));
+        assert!(!query.matches(&Trigger::ModHold { mods: CTRL }));
+
+        let mut tap = vec![
+            recorded_key_event(Key::ControlLeft, None, true, Modifiers::CTRL),
+            recorded_key_event(Key::ControlLeft, None, false, Modifiers::NONE),
+        ];
+        assert_eq!(recorder.capture(&mut tap, 0, &[(CTRL, FN), (CTRL, 0)]), Some(RecordedLookup::Modifiers(CTRL | FN)));
+    }
+
+    #[test]
+    fn modifier_recording_waits_for_both_sides_and_clears_on_focus_loss() {
+        use egui::{Key, Modifiers};
+        let mut recorder = LookupRecorder::default();
+        let event = |key, pressed| recorded_key_event(key, None, pressed, Modifiers::NONE);
+        let mut both = vec![event(Key::ControlLeft, true), event(Key::ControlRight, true), event(Key::ControlLeft, false)];
+        assert_eq!(recorder.capture(&mut both, 0, &[]), None);
+        let mut last = vec![event(Key::ControlRight, false)];
+        assert_eq!(recorder.capture(&mut last, 0, &[]), Some(RecordedLookup::Modifiers(CTRL)));
+        let mut interrupted = vec![event(Key::ControlLeft, true), egui::Event::WindowFocused(false), event(Key::ControlLeft, false)];
+        assert_eq!(recorder.capture(&mut interrupted, 0, &[]), None);
     }
 
     #[test]
@@ -2649,13 +2712,13 @@ mod tests {
             egui::Event::Text("a".into()),
             recorded_key_event(Key::ShiftLeft, Some(Key::ShiftLeft), true, egui::Modifiers::CTRL | egui::Modifiers::SHIFT),
         ];
-        assert_eq!(recorder.capture(&mut press), Some(RecordedLookup::Key(Key::A, egui::Modifiers::CTRL)));
+        assert_eq!(recorder.capture(&mut press, 0, &[]), Some(RecordedLookup::Key(Key::A, egui::Modifiers::CTRL)));
         assert!(press.is_empty());
         let mut release = vec![
             recorded_key_event(Key::ControlLeft, None, false, egui::Modifiers::SHIFT),
             recorded_key_event(Key::ShiftLeft, None, false, egui::Modifiers::NONE),
         ];
-        assert_eq!(recorder.capture(&mut release), None);
+        assert_eq!(recorder.capture(&mut release, 0, &[]), None);
     }
 
     #[test]
@@ -2667,7 +2730,7 @@ mod tests {
             egui::Event::Key { key: Key::Escape, physical_key: Some(Key::Escape), pressed: true, repeat: true, modifiers: egui::Modifiers::NONE },
             release.clone(),
         ];
-        assert_eq!(LookupRecorder::default().capture(&mut events), Some(RecordedLookup::Key(Key::Escape, egui::Modifiers::NONE)));
+        assert_eq!(LookupRecorder::default().capture(&mut events, 0, &[]), Some(RecordedLookup::Key(Key::Escape, egui::Modifiers::NONE)));
         assert_eq!(events, vec![release]);
     }
 
