@@ -76,6 +76,11 @@ pub fn quick_scan() -> ScanResult {
     r.shortcuts.extend(cfg);
     r.notes.push(SourceNote { name: "Tool config files".into(), count: nc, status: "AeroSpace, OmniWM, skhd, Karabiner, Wispr Flow, editor key bindings".into(), ok: true });
 
+    if let Some((shortcuts, note)) = spaceman_hotkeys(&apps) {
+        r.shortcuts.extend(shortcuts);
+        r.notes.push(note);
+    }
+
     let js = json_settings_hotkeys(&apps);
     if !js.is_empty() {
         let owners: HashSet<&str> = js.iter().map(|s| s.app.as_str()).collect();
