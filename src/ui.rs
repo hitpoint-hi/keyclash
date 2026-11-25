@@ -187,6 +187,7 @@ pub struct AtlasApp {
     scanning: bool,
     tab: Tab,
     settings_open: bool,
+    updates: crate::updates::Checker,
     search: String,
     show_kind: HashMap<Kind, bool>,
     hide_standard: bool,
@@ -289,6 +290,7 @@ impl AtlasApp {
             scanning: false,
             tab: Tab::Conflicts,
             settings_open: false,
+            updates: Default::default(),
             search: String::new(),
             show_kind,
             hide_standard: true,
@@ -2413,6 +2415,7 @@ impl AtlasApp {
         egui::Panel::top("header")
             .frame(egui::Frame::new().fill(t.surface).inner_margin(egui::Margin { left: 20, right: 20, top: 0, bottom: 0 }))
             .show(ui, |ui| self.header(ui));
+        self.update_notice(ui);
         egui::CentralPanel::default()
             .frame(egui::Frame::new().fill(t.bg).inner_margin(egui::Margin::symmetric(20, 14)))
             .show(ui, |ui| {
@@ -2455,6 +2458,30 @@ impl AtlasApp {
 }
 
 impl AtlasApp {
+    fn update_notice(&self, ui: &mut egui::Ui) {
+        let Some(version) = self.updates.available else { return };
+        let s = crate::settings::get();
+        let label = version.to_string();
+        if !s.automatic_update_checks || s.dismissed_update.as_deref() == Some(label.as_str()) {
+            return;
+        }
+        let t = th();
+        egui::Panel::top("update_notice")
+            .frame(egui::Frame::new().fill(t.raised).inner_margin(egui::Margin::symmetric(20, 7)))
+            .show(ui, |ui| {
+                ui.horizontal_wrapped(|ui| {
+                    let notice = ui.label(medium(format!("Keyclash {version} is available")).color(t.text));
+                    ui.ctx().accesskit_node_builder(notice.id, |node| {
+                        node.set_live(egui::accesskit::Live::Polite);
+                    });
+                    ui.hyperlink_to("View release", version.release_url());
+                    if ui.small_button("Dismiss").clicked() {
+                        crate::settings::update(|s| s.dismissed_update = Some(label));
+                    }
+                });
+            });
+    }
+
     fn open_settings(&mut self, ctx: &egui::Context) {
         self.settings_open = true;
         ctx.send_viewport_cmd_to(settings_viewport(), egui::ViewportCommand::Focus);
@@ -2481,9 +2508,10 @@ impl AtlasApp {
             });
             egui::CentralPanel::default()
                 .frame(egui::Frame::new().fill(th().bg).inner_margin(egui::Margin::symmetric(20, 14)))
-                .show(ui, |ui| change = crate::welcome::settings_content(ui, self.screenshot.is_none()));
+                .show(ui, |ui| change = crate::welcome::settings_content(ui, self.screenshot.is_none(), &self.updates));
         });
         match change {
+            crate::welcome::Change::CheckForUpdates => self.updates.start(ctx, settings_viewport()),
             crate::welcome::Change::ScanAgain if !self.scanning => self.start_scan(ctx),
             crate::welcome::Change::ShowWelcome => {
                 self.welcome_count = crate::settings::get().count_keys;
@@ -2560,6 +2588,18 @@ impl eframe::App for AtlasApp {
         self.follow_layout(ctx);
         self.poll_learn();
         self.poll_hotkey(ctx);
+        self.updates.receive();
+        if self.screenshot.is_none() && !self.show_welcome
+            && crate::settings::get().automatic_update_checks
+            && let Some(wait) = self.updates.time_until_check()
+        {
+            if wait.is_zero() {
+                self.updates.start(ctx, settings_viewport());
+            } else {
+                // Recheck the wall clock periodically because Mac sleep can pause the repaint timer.
+                ctx.request_repaint_after(wait.min(std::time::Duration::from_secs(15 * 60)));
+            }
+        }
         let Some(path) = self.screenshot.clone() else { return };
         self.frames += 1;
         // Keep drawing even if the window is covered, minimised or on another screen.
@@ -2599,7 +2639,7 @@ impl eframe::App for AtlasApp {
             if self.settings_open {
                 egui::CentralPanel::default()
                     .frame(egui::Frame::new().fill(th().bg).inner_margin(egui::Margin::symmetric(20, 14)))
-                    .show(ui, |ui| { crate::welcome::settings_content(ui, false); });
+                    .show(ui, |ui| { crate::welcome::settings_content(ui, false, &self.updates); });
                 return;
             }
             if let Some(p) = self.panel.as_mut() {

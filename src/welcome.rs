@@ -2,6 +2,7 @@
 
 use crate::settings::{self, PanelKey};
 use crate::theme::{card, dot, medium, overline, segmented, semi, th};
+use crate::updates::{Checker, Status as UpdateStatus};
 use crate::usage;
 use eframe::egui::{self, RichText};
 
@@ -49,7 +50,7 @@ pub fn show(ui: &mut egui::Ui, count: &mut bool, logo: Option<&egui::TextureHand
                     ),
                     (
                         "What it keeps",
-                        "Your settings, your stars and the menus it read, in a folder on this Mac. Keyclash has no network code. Nothing leaves this Mac.",
+                        "Your shortcut data and settings stay on this Mac. Keyclash checks GitHub for new versions. You can turn off automatic checks in Settings.",
                     ),
                 ] {
                     card().show(ui, |ui| {
@@ -84,9 +85,10 @@ pub enum Change {
     /// The panel key changed: read the shortcuts again, because the list holds this app's own hotkey.
     ScanAgain,
     ShowWelcome,
+    CheckForUpdates,
 }
 
-pub fn settings_content(ui: &mut egui::Ui, save_appearance: bool) -> Change {
+pub fn settings_content(ui: &mut egui::Ui, save_appearance: bool, updates: &Checker) -> Change {
     let t = th();
     let mut change = Change::Nothing;
     egui::ScrollArea::vertical().id_salt("settings").auto_shrink([false, false]).show(ui, |ui| {
@@ -107,6 +109,41 @@ pub fn settings_content(ui: &mut egui::Ui, save_appearance: bool) -> Change {
                         crate::theme::set_pref(ui.ctx(), pref, save_appearance);
                     }
                 });
+            });
+        });
+        ui.add_space(8.0);
+
+        card().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.label(semi("Updates").size(15.0).color(t.text));
+            let mut automatic = s.automatic_update_checks;
+            if ui.checkbox(&mut automatic, "Check for updates automatically").changed() {
+                settings::update(|s| s.automatic_update_checks = automatic);
+                ui.ctx().request_repaint_of(egui::ViewportId::ROOT);
+            }
+            ui.label(RichText::new("Update checks contact GitHub. Your shortcut data stays on this Mac.").size(13.0).color(t.text2));
+            ui.horizontal_wrapped(|ui| {
+                let checking = matches!(updates.status, UpdateStatus::Checking);
+                if ui.add_enabled(!checking, egui::Button::new("Check for Updates")).clicked() {
+                    change = Change::CheckForUpdates;
+                }
+                let status = match updates.status {
+                    UpdateStatus::Idle => None,
+                    UpdateStatus::Checking => Some("Checking…".to_string()),
+                    UpdateStatus::Current => Some("You’re up to date.".to_string()),
+                    UpdateStatus::Available(version) => Some(format!("Keyclash {version} is available.")),
+                    UpdateStatus::Preparing(version) => Some(format!("The Keyclash {version} download is pending.")),
+                    UpdateStatus::Failed => Some("Couldn’t check GitHub. Try again.".to_string()),
+                };
+                if let Some(status) = status {
+                    let label = ui.label(RichText::new(status).size(13.0).color(t.text2));
+                    ui.ctx().accesskit_node_builder(label.id, |node| {
+                        node.set_live(egui::accesskit::Live::Polite);
+                    });
+                }
+                if let Some(version) = updates.available {
+                    ui.hyperlink_to("View release", version.release_url());
+                }
             });
         });
         ui.add_space(8.0);
@@ -163,7 +200,7 @@ pub fn settings_content(ui: &mut egui::Ui, save_appearance: bool) -> Change {
             ui.set_width(ui.available_width());
             ui.label(semi("Your data").size(15.0).color(t.text));
             let dir = crate::sources::data_dir();
-            ui.label(RichText::new("Settings, stars, counts and the menus that Keyclash read are in one folder on this Mac. Keyclash has no network code.").size(13.0).color(t.text2));
+            ui.label(RichText::new("Your settings, stars, counts and saved menus stay in one folder on this Mac.").size(13.0).color(t.text2));
             ui.add(egui::Label::new(RichText::new(dir.display().to_string()).size(12.5).color(t.muted).monospace()).wrap());
             if ui.button("Show in Finder").clicked() {
                 let _ = std::fs::create_dir_all(&dir);

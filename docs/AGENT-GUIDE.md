@@ -97,7 +97,7 @@ third-party config files. Use disposable config fixtures for write tests.
 
 ## Privacy
 
-Keyclash itself sends no network requests. A connected agent receives tool results, which
+The Keyclash MCP process sends no network requests. A connected agent receives tool results, which
 can include app names, config paths, commands, shortcut use counts, and configuration diffs.
 Your agent client's provider and privacy settings control any further transmission.
 
