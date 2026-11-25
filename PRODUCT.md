@@ -13,7 +13,7 @@ returns no recognized platform for `macos`. Use the native source and rendered a
 ## Users
 
 Keyboard-focused Mac users who want to find shortcuts, resolve clashes, and understand their shortcut use.
-Bobby confirmed this audience and the local-only product on 2026-11-12.
+Bobby confirmed this audience and local shortcut storage on 2026-11-12.
 
 ## Product Purpose
 
@@ -33,7 +33,7 @@ The shortcut panel follows the foreground app. The main window provides inventor
 - Key observations do not prove which action ran. Several possible actions remain ambiguous and count once.
 - Historical usage records remain intact when matching rules change.
 - Remembered menus apply only to the same installed app identity. Opening an app refreshes its live menus when permission permits.
-- Keyclash has no network code. Distribution and release checks remain separate from local tests.
+- The desktop app can request public release information from GitHub. Shortcut data stays local, and users can turn off automatic checks.
 
 ## Brand Commitments
 

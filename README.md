@@ -28,16 +28,20 @@ Site: [keyclash.app](https://keyclash.app). Its source is in [site/](site/).
 
 ## Install
 
-Keyclash 0.1.2 is an early version for friends. It is signed with an Apple Developer ID and notarized by Apple, so macOS opens it without a warning.
+Keyclash is signed with an Apple Developer ID and notarized by Apple.
 
-1. Download `Keyclash-0.1.2.zip` from the [latest release](https://github.com/hitpoint-hi/keyclash/releases/latest), unzip it, and move **Keyclash** to your Applications folder.
+1. Download `Keyclash.zip` from the [latest release](https://github.com/hitpoint-hi/keyclash/releases/latest), unzip it, and move **Keyclash** to your Applications folder.
 2. Open Keyclash. Read the welcome page and click **Start**.
 3. Click **Ask macOS for permission** and turn on Keyclash in the Accessibility list. Without this permission, Keyclash still shows the shortcuts that it finds in files.
 4. Optional: macOS guards the settings of sandboxed apps (for example macshot and Maccy). To see their hotkeys, turn on Keyclash in System Settings › Privacy & Security › Full Disk Access, then click **Scan again**. The "Where we looked" tab tells you when macOS blocked these files.
 
-Update from 0.1.0: replace the old app in Applications. Version 0.1.0 had a different signature, so macOS asks for Accessibility again one time. If Keyclash shows as on but does not work, select it in the Accessibility list, remove it with **−**, and turn it on again.
-
 Keyclash runs on Apple Silicon and Intel Macs. It was tested on one Mac only (Apple Silicon, macOS 27), so tell me what looks wrong on yours.
+
+## Updates
+
+Keyclash checks GitHub on startup and once a day while the app is open. When a new version is available, **View release** opens its download page. **Dismiss** hides the notice for that version. You can check manually or turn off automatic checks under **Settings → Updates**.
+
+To install an update, quit Keyclash and replace it in Applications with the copy from the new ZIP. If you upgrade from 0.1.0, macOS may ask for Accessibility permission again because the app signature changed.
 
 ## Where the shortcuts come from
 
@@ -51,7 +55,7 @@ The "Where we looked" tab shows the count from each source.
 
 ## Privacy
 
-- Keyclash has no network code. Its scan records and backups remain on this Mac.
+- Shortcut scans, counts, and backups stay on this Mac. Update checks request public release information from GitHub without sending your shortcut data.
 - When you connect an external agent, that client receives the tool results. Its provider and privacy settings control further transmission.
 - The key listener reads each key press and gives it back unchanged.
 - It also sees that a mouse button went down, so a ⌘-click does not open Peek. It does not read where you click or which button. It does not count or store clicks.

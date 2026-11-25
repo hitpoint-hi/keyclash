@@ -72,6 +72,10 @@ pub struct Settings {
     /// The size the person gave Peek, in points. None: fit the rows.
     #[serde(default)]
     pub panel_size: Option<[f32; 2]>,
+    #[serde(default = "default_automatic_update_checks")]
+    pub automatic_update_checks: bool,
+    #[serde(default)]
+    pub dismissed_update: Option<String>,
 }
 
 /// Default text size: 13 points.
@@ -80,6 +84,10 @@ pub const PANEL_FONT_RANGE: (f32, f32) = (11.0, 20.0);
 
 fn default_panel_font() -> f32 {
     DEFAULT_PANEL_FONT
+}
+
+fn default_automatic_update_checks() -> bool {
+    true
 }
 
 impl Default for Settings {
@@ -92,6 +100,8 @@ impl Default for Settings {
             highlight_mode: 0,
             panel_pos: None,
             panel_size: None,
+            automatic_update_checks: default_automatic_update_checks(),
+            dismissed_update: None,
         }
     }
 }
@@ -147,11 +157,13 @@ mod tests {
         // A file from an earlier version has no text size: the default applies.
         assert_eq!(s.panel_font, DEFAULT_PANEL_FONT);
         assert_eq!(s.highlight_mode, 0);
+        assert!(s.automatic_update_checks);
+        assert!(s.dismissed_update.is_none());
     }
 
     #[test]
     fn the_panel_key_reads_back() {
-        let s = Settings { welcomed: true, count_keys: true, panel_key: PanelKey::Option, panel_font: 15.0, highlight_mode: 2, panel_pos: Some([1600.0, 40.0]), panel_size: Some([520.0, 700.0]) };
+        let s = Settings { welcomed: true, count_keys: true, panel_key: PanelKey::Option, panel_font: 15.0, highlight_mode: 2, panel_pos: Some([1600.0, 40.0]), panel_size: Some([520.0, 700.0]), automatic_update_checks: false, dismissed_update: Some("0.1.3".into()) };
         let back: Settings = serde_json::from_str(&serde_json::to_string(&s).unwrap()).unwrap();
         assert_eq!(back, s);
         assert_eq!(PanelKey::Off.flag(), 0);

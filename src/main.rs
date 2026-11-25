@@ -24,6 +24,7 @@ mod settings;
 mod sources;
 mod theme;
 mod ui;
+mod updates;
 mod usage;
 mod use_tab;
 mod welcome;
